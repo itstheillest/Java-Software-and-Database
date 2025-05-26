@@ -1,11 +1,12 @@
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
+import javax.swing.table.JTableHeader;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.lang.runtime.SwitchBootstraps;
 import java.util.ArrayList;
 import java.util.List;
 import java.time.LocalDateTime;
@@ -25,6 +26,15 @@ public class Main extends JFrame {
     private int pendingRequests = 23;
     private int completedToday = 8;
     private int activeUsers = 15;
+
+    // System information constants
+    private static final String SYSTEM_NAME = "Barangay Market Area Services Management System";
+    private static final String VERSION = "1.0.0";
+    private static final String BUILD_DATE = "May 2025";
+    private static final String DEVELOPER_TEAM = "Local Government Development Team";
+
+    private JPanel dynamicFormContainer;
+    private JScrollPane formScrollPane;
 
     public Main() {
         // Set up the main frame
@@ -119,6 +129,47 @@ public class Main extends JFrame {
         JSeparator separator = new JSeparator(SwingConstants.HORIZONTAL);
         separator.setForeground(new Color(0, 0, 0, 100)); // white-ish, semi-transparent
         return separator;
+    }
+
+    private JPanel createStyledPanel() {
+        return new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                // Semi-transparent white background for readability
+                g2d.setColor(new Color(255, 255, 255, 235));
+                g2d.fillRoundRect(15, 15, getWidth()-30, getHeight()-30, 20, 20);
+
+                // Border
+                g2d.setColor(new Color(128, 0, 0, 120));
+                g2d.setStroke(new BasicStroke(2));
+                g2d.drawRoundRect(15, 15, getWidth()-30, getHeight()-30, 20, 20);
+
+                g2d.dispose();
+                super.paintComponent(g);
+            }
+        };
+    }
+
+    private JLabel createDateTimeLabel() {
+        JLabel dateTimeLabel = new JLabel();
+        dateTimeLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+        dateTimeLabel.setForeground(new Color(100, 100, 100));
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEEE, MMMM dd, yyyy - HH:mm:ss");
+
+        // Initial time set
+        dateTimeLabel.setText(LocalDateTime.now().format(formatter));
+
+        // Update date/time every second
+        Timer clockTimer = new Timer(1000, e -> {
+            dateTimeLabel.setText(LocalDateTime.now().format(formatter));
+        });
+        clockTimer.start();
+
+        return dateTimeLabel;
     }
 
     private void createLeftPanel() {
@@ -259,8 +310,8 @@ public class Main extends JFrame {
         menuPanel.setOpaque(false);
 
         String[] menuItems = {
-                "Home",        // index 0
-                "Group 2.1",   // index 1
+                "Dashboard",        // index 0
+                "Barangay Document Application",   // index 1
                 "Group 2.2",   // index 2
                 "Group 2.3",   // index 3
                 "Group 2.4",   // index 4
@@ -288,7 +339,7 @@ public class Main extends JFrame {
                             g2d.setColor(new Color(245, 245, 240, 200)); // Medium sea green default
                         }
                     } else {
-                        // Original styling for Home and About (indexes 0 and 5)
+                        // Original styling for Dashboard and About (indexes 0 and 5)
                         if (getModel().isPressed()) {
                             g2d.setColor(new Color(200, 200, 195, 220));
                         } else if (getModel().isRollover()) {
@@ -319,12 +370,12 @@ public class Main extends JFrame {
             if (buttonIndex >= 1 && buttonIndex <= 4) {
                 button.setForeground(new Color(60, 60, 55)); // White text for group buttons
             } else {
-                button.setForeground(new Color(11, 18, 21)); // Dark text for Home/About
+                button.setForeground(new Color(11, 18, 21)); // Dark text for Dashboard/About
             }
 
             button.setAlignmentX(Component.CENTER_ALIGNMENT);
-            button.setMaximumSize(new Dimension(220, 40));
-            button.setPreferredSize(new Dimension(220, 40));
+            button.setMaximumSize(new Dimension(300, 40));
+            button.setPreferredSize(new Dimension(300, 40));
             button.setFont(new Font("Verdana", Font.BOLD, 12));
             button.setContentAreaFilled(false);
             button.setBorderPainted(false);
@@ -336,7 +387,7 @@ public class Main extends JFrame {
                     if (buttonIndex >= 1 && buttonIndex <= 4) {
                         button.setForeground(new Color(255, 255, 255)); // Keep white for groups
                     } else {
-                        button.setForeground(new Color(255, 255, 240)); // Light color for Home/About
+                        button.setForeground(new Color(255, 255, 240)); // Light color for Dashboard/About
                     }
                     button.repaint();
                 }
@@ -420,28 +471,10 @@ public class Main extends JFrame {
         rightPanel.add(contentOverlay, BorderLayout.CENTER);
     }
 
-    private JPanel createHomeContent() {
-        JPanel homePanel = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2d = (Graphics2D) g.create();
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-                // Semi-transparent white background for readability
-                g2d.setColor(new Color(255, 255, 255, 235));
-                g2d.fillRoundRect(15, 15, getWidth()-30, getHeight()-30, 20, 20);
-
-                // Border
-                g2d.setColor(new Color(128, 0, 0, 120));
-                g2d.setStroke(new BasicStroke(2));
-                g2d.drawRoundRect(15, 15, getWidth()-30, getHeight()-30, 20, 20);
-
-                g2d.dispose();
-                super.paintComponent(g);
-            }
-        };
-        homePanel.setLayout(new BorderLayout(10, 10));
-        homePanel.setOpaque(false);
+    private JPanel createDashboardContent() {
+        JPanel dashboardPanel = createStyledPanel();
+        dashboardPanel.setLayout(new BorderLayout(10, 10));
+        dashboardPanel.setOpaque(false);
 
         // Header Section
         JPanel headerSection = new JPanel(new BorderLayout());
@@ -452,22 +485,7 @@ public class Main extends JFrame {
         welcomeLabel.setFont(new Font("Arial", Font.BOLD, 24));
         welcomeLabel.setForeground(new Color(128, 0, 0));
 
-        JLabel dateTimeLabel = new JLabel();
-        dateTimeLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-        dateTimeLabel.setForeground(new Color(100, 100, 100));
-
-        // Update date/time
-        Timer clockTimer = new Timer(1000, e -> {
-            LocalDateTime now = LocalDateTime.now();
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEEE, MMMM dd, yyyy - HH:mm:ss");
-            dateTimeLabel.setText(now.format(formatter));
-        });
-        clockTimer.start();
-
-        // Initial time set
-        LocalDateTime now = LocalDateTime.now();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEEE, MMMM dd, yyyy - HH:mm:ss");
-        dateTimeLabel.setText(now.format(formatter));
+        JLabel dateTimeLabel = createDateTimeLabel();
 
         headerSection.add(welcomeLabel, BorderLayout.WEST);
         headerSection.add(dateTimeLabel, BorderLayout.EAST);
@@ -511,10 +529,10 @@ public class Main extends JFrame {
         gbc.gridwidth = 2; gbc.weightx = 1.0; gbc.weighty = 0.3;
         contentArea.add(announcementsPanel, gbc);
 
-        homePanel.add(headerSection, BorderLayout.NORTH);
-        homePanel.add(contentArea, BorderLayout.CENTER);
+        dashboardPanel.add(headerSection, BorderLayout.NORTH);
+        dashboardPanel.add(contentArea, BorderLayout.CENTER);
 
-        return homePanel;
+        return dashboardPanel;
     }
 
     private JPanel createStatsPanel() {
@@ -589,7 +607,7 @@ public class Main extends JFrame {
                 new Color(128, 0, 0)
         ));
 
-        String[] actionNames = {"New Record", "Search", "Reports", "Settings", "Backup", "Export"};
+        String[] actionNames = {"New Record", "Search ", "Reports ", "Settings", "Backup ", "Export "};
         String[] actionIcons = {"➕", "🔍", "📊", "⚙️", "💾", "📤"};
 
         for (int i = 0; i < actionNames.length; i++) {
@@ -614,7 +632,10 @@ public class Main extends JFrame {
                 }
             };
 
-            actionBtn.setText("<html><center>" + actionIcons[i] + "<br>" + actionName + "</center></html>");
+            actionBtn.setText("<html><div style='text-align:center; white-space:nowrap; line-height:1.1;'>" +
+                    "<span style='font-size:18px;'>" + actionIcons[i] + "</span><br>" +
+                    "<span style='font-size:10px;'>" + actionName + "</span>" +
+                    "</div></html>");
             actionBtn.setFont(new Font("Arial", Font.PLAIN, 11));
             actionBtn.setForeground(Color.WHITE);
             actionBtn.setContentAreaFilled(false);
@@ -698,6 +719,1084 @@ public class Main extends JFrame {
 
         announcementsPanel.add(announcementText, BorderLayout.CENTER);
         return announcementsPanel;
+    }
+
+    private JPanel createBarangayDocumentContent() {
+        JPanel documentPanel = createStyledPanel();
+        documentPanel.setLayout(new BorderLayout(10, 10));
+        documentPanel.setOpaque(false);
+
+        // Header Section
+        JPanel headerSection = new JPanel(new BorderLayout());
+        headerSection.setOpaque(false);
+        headerSection.setBorder(BorderFactory.createEmptyBorder(25, 30, 10, 30));
+
+        JLabel titleLabel = new JLabel("Barangay Document Application");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        titleLabel.setForeground(new Color(128, 0, 0));
+
+        JLabel statusLabel = new JLabel("Select document type to begin");
+        statusLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+        statusLabel.setForeground(Color.GRAY);
+
+        headerSection.add(titleLabel, BorderLayout.WEST);
+        headerSection.add(statusLabel, BorderLayout.EAST);
+
+        // Document Type Selection Panel
+        JPanel documentTypePanel = createDocumentTypePanel();
+
+        // Dynamic Input Form Panel
+        JPanel inputFormPanel = createDynamicInputFormPanel();
+
+        // CRUD Actions Panel
+        JPanel crudActionsPanel = createCrudActionsPanel();
+
+        // Document Records Table Panel
+        JPanel recordsTablePanel = createDocumentRecordsPanel();
+
+        // Search and Filter Panel
+        JPanel searchFilterPanel = createSearchFilterPanel();
+
+        // Main content area
+        JPanel contentArea = new JPanel(new GridBagLayout());
+        contentArea.setOpaque(false);
+        contentArea.setBorder(BorderFactory.createEmptyBorder(0, 20, 20, 20));
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.insets = new Insets(5, 5, 5, 5);
+
+        // First row - Document Type Selection and Search/Filter
+        gbc.gridx = 0; gbc.gridy = 0;
+        gbc.gridwidth = 1; gbc.weightx = 0.6; gbc.weighty = 0.15;
+        contentArea.add(documentTypePanel, gbc);
+
+        gbc.gridx = 1; gbc.weightx = 0.4;
+        contentArea.add(searchFilterPanel, gbc);
+
+        // Second row - Input Form and CRUD Actions
+        gbc.gridx = 0; gbc.gridy = 1;
+        gbc.weightx = 0.7; gbc.weighty = 0.4;
+        contentArea.add(inputFormPanel, gbc);
+
+        gbc.gridx = 1; gbc.weightx = 0.3;
+        contentArea.add(crudActionsPanel, gbc);
+
+        // Third row - Records Table (full width)
+        gbc.gridx = 0; gbc.gridy = 2;
+        gbc.gridwidth = 2; gbc.weightx = 1.0; gbc.weighty = 0.45;
+        contentArea.add(recordsTablePanel, gbc);
+
+        documentPanel.add(headerSection, BorderLayout.NORTH);
+        documentPanel.add(contentArea, BorderLayout.CENTER);
+
+        return documentPanel;
+    }
+
+    private JPanel createDocumentTypePanel() {
+        JPanel panel = createStyledPanel();
+        panel.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder(new Color(128, 0, 0), 2),
+                "Document Type Selection",
+                TitledBorder.LEFT,
+                TitledBorder.TOP,
+                new Font("Arial", Font.BOLD, 14),
+                new Color(128, 0, 0)
+        ));
+
+        panel.setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 10, 5, 10);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        JLabel selectLabel = new JLabel("Select Document:");
+        selectLabel.setFont(new Font("Arial", Font.BOLD, 12));
+
+        String[] documentTypes = {
+                "Select Document Type",
+                "Certificate of Indigency",
+                "Barangay Certificate for Business",
+                "Certificate of Residency",
+                "Certificate of Solo Parent",
+                "Barangay ID",
+                "Individual Barangay Clearance",
+                "Business Barangay Clearance",
+                "Business Permit"
+        };
+
+        JComboBox<String> documentTypeCombo = new JComboBox<>(documentTypes);
+        documentTypeCombo.setFont(new Font("Arial", Font.PLAIN, 12));
+        documentTypeCombo.setPreferredSize(new Dimension(250, 30));
+
+        // Add action listener to update form when document type changes
+        documentTypeCombo.addActionListener(e -> {
+            String selectedType = (String) documentTypeCombo.getSelectedItem();
+            updateInputForm(selectedType);
+        });
+
+        gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 0.3;
+        panel.add(selectLabel, gbc);
+
+        gbc.gridx = 1; gbc.gridy = 0; gbc.weightx = 0.7;
+        panel.add(documentTypeCombo, gbc);
+
+        return panel;
+    }
+
+    private JPanel createDynamicInputFormPanel() {
+        JPanel panel = createStyledPanel();
+        panel.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder(new Color(128, 0, 0), 2),
+                "Document Information",
+                TitledBorder.LEFT,
+                TitledBorder.TOP,
+                new Font("Arial", Font.BOLD, 14),
+                new Color(128, 0, 0)
+        ));
+
+        // Store reference to form container
+        dynamicFormContainer = new JPanel(new BorderLayout());
+        dynamicFormContainer.setOpaque(false);
+
+        JLabel instructionLabel = new JLabel("Please select a document type to display the form");
+        instructionLabel.setFont(new Font("Arial", Font.ITALIC, 12));
+        instructionLabel.setForeground(Color.GRAY);
+        instructionLabel.setHorizontalAlignment(SwingConstants.CENTER);
+
+        dynamicFormContainer.add(instructionLabel, BorderLayout.CENTER);
+
+        // Store reference to scroll pane
+        formScrollPane = new JScrollPane(dynamicFormContainer);
+        formScrollPane.setOpaque(false);
+        formScrollPane.getViewport().setOpaque(false);
+        formScrollPane.setBorder(null);
+        formScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        formScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+
+        panel.setLayout(new BorderLayout());
+        panel.add(formScrollPane, BorderLayout.CENTER);
+
+        return panel;
+    }
+
+    private JPanel createCrudActionsPanel() {
+        JPanel panel = createStyledPanel();
+        panel.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder(new Color(128, 0, 0), 2),
+                "Quick Actions",
+                TitledBorder.LEFT,
+                TitledBorder.TOP,
+                new Font("Arial", Font.BOLD, 14),
+                new Color(128, 0, 0)
+        ));
+
+        panel.setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(8, 10, 8, 10);
+
+        // Create action buttons
+        JButton addButton = createActionButton("Add New Data", "icons/add.png");
+        JButton updateButton = createActionButton("Update Data", "icons/edit.png");
+        JButton deleteButton = createActionButton("Delete Data", "icons/delete.png");
+        JButton clearButton = createActionButton("Clear Form", "icons/clear.png");
+        JButton printButton = createActionButton("Print Document", "icons/print.png");
+
+        // Add action listeners
+        addButton.addActionListener(e -> handleAddDocument());
+        updateButton.addActionListener(e -> handleUpdateDocument());
+        deleteButton.addActionListener(e -> handleDeleteDocument());
+        clearButton.addActionListener(e -> handleClearForm());
+        printButton.addActionListener(e -> handlePrintDocument());
+
+        gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 1.0;
+        panel.add(addButton, gbc);
+
+        gbc.gridy = 1;
+        panel.add(updateButton, gbc);
+
+        gbc.gridy = 2;
+        panel.add(deleteButton, gbc);
+
+        gbc.gridy = 3;
+        panel.add(clearButton, gbc);
+
+        gbc.gridy = 4;
+        panel.add(printButton, gbc);
+
+        return panel;
+    }
+
+    private JButton createActionButton(String text, String iconPath) {
+        JButton button = new JButton(text);
+        button.setFont(new Font("Arial", Font.BOLD, 11));
+        button.setPreferredSize(new Dimension(140, 35));
+        button.setBackground(new Color(128, 0, 0));
+        button.setForeground(Color.BLACK);
+        button.setFocusPainted(false);
+
+        // Add hover effect
+        button.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                button.setBackground(new Color(160, 0, 0));
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                button.setBackground(new Color(128, 0, 0));
+            }
+        });
+
+        return button;
+    }
+
+    private JPanel createSearchFilterPanel() {
+        JPanel panel = createStyledPanel();
+        panel.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder(new Color(128, 0, 0), 2),
+                "Search & Filter",
+                TitledBorder.LEFT,
+                TitledBorder.TOP,
+                new Font("Arial", Font.BOLD, 14),
+                new Color(128, 0, 0)
+        ));
+
+        panel.setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 10, 5, 10);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        JLabel searchLabel = new JLabel("Search:");
+        searchLabel.setFont(new Font("Arial", Font.BOLD, 12));
+
+        JTextField searchField = new JTextField();
+        searchField.setFont(new Font("Arial", Font.PLAIN, 12));
+        searchField.setPreferredSize(new Dimension(200, 25));
+
+        JLabel filterLabel = new JLabel("Filter by Status:");
+        filterLabel.setFont(new Font("Arial", Font.BOLD, 12));
+
+        String[] statusOptions = {"All", "Pending", "Approved", "Released", "Rejected"};
+        JComboBox<String> statusFilter = new JComboBox<>(statusOptions);
+        statusFilter.setFont(new Font("Arial", Font.PLAIN, 12));
+        statusFilter.setPreferredSize(new Dimension(120, 25));
+
+        JButton searchButton = new JButton("Search");
+        searchButton.setFont(new Font("Arial", Font.BOLD, 10));
+        searchButton.setBackground(new Color(128, 0, 0));
+        searchButton.setForeground(Color.BLACK);
+        searchButton.setPreferredSize(new Dimension(80, 25));
+
+        gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 0.3;
+        panel.add(searchLabel, gbc);
+
+        gbc.gridx = 1; gbc.gridy = 0; gbc.weightx = 0.7;
+        panel.add(searchField, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 1; gbc.weightx = 0.3;
+        panel.add(filterLabel, gbc);
+
+        gbc.gridx = 1; gbc.gridy = 1; gbc.weightx = 0.7;
+        panel.add(statusFilter, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 2; gbc.weightx = 1.0;
+        gbc.anchor = GridBagConstraints.CENTER;
+        panel.add(searchButton, gbc);
+
+        return panel;
+    }
+
+    private JPanel createDocumentRecordsPanel() {
+        JPanel panel = createStyledPanel();
+        panel.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder(new Color(128, 0, 0), 2),
+                "Document Records",
+                TitledBorder.LEFT,
+                TitledBorder.TOP,
+                new Font("Arial", Font.BOLD, 14),
+                new Color(128, 0, 0)
+        ));
+
+        // Create table with sample columns (will be dynamic based on document type)
+        String[] columnNames = {
+                "ID", "Document Type", "Applicant Name", "Date Applied",
+                "Status", "Date Processed", "Processed By"
+        };
+
+        Object[][] sampleData = {
+                {"001", "Certificate of Indigency", "Juan Dela Cruz", "2024-01-15", "Approved", "2024-01-16", "Admin"},
+                {"002", "Barangay Clearance", "Maria Santos", "2024-01-14", "Pending", "-", "-"},
+                {"003", "Certificate of Residency", "Pedro Garcia", "2024-01-13", "Released", "2024-01-15", "Admin"}
+        };
+
+        JTable documentsTable = new JTable(sampleData, columnNames);
+        documentsTable.setFont(new Font("Arial", Font.PLAIN, 11));
+        documentsTable.setRowHeight(25);
+        documentsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        documentsTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+
+        // Customize table header
+        JTableHeader header = documentsTable.getTableHeader();
+        header.setFont(new Font("Arial", Font.BOLD, 12));
+        header.setBackground(new Color(128, 0, 0));
+        header.setForeground(Color.WHITE);
+
+        JScrollPane tableScrollPane = new JScrollPane(documentsTable);
+        tableScrollPane.setPreferredSize(new Dimension(800, 200));
+
+        panel.setLayout(new BorderLayout());
+        panel.add(tableScrollPane, BorderLayout.CENTER);
+
+        return panel;
+    }
+
+    private JPanel createCommonFields() {
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setOpaque(false);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.anchor = GridBagConstraints.WEST;
+
+        // Full Name
+        gbc.gridx = 0; gbc.gridy = 0;
+        panel.add(new JLabel("Full Name:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField fullNameField = new JTextField(20);
+        panel.add(fullNameField, gbc);
+
+        // Address
+        gbc.gridx = 0; gbc.gridy = 1; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        panel.add(new JLabel("Address:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField addressField = new JTextField(20);
+        panel.add(addressField, gbc);
+
+        // Contact Number
+        gbc.gridx = 0; gbc.gridy = 2; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        panel.add(new JLabel("Contact Number:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField contactField = new JTextField(20);
+        panel.add(contactField, gbc);
+
+        return panel;
+    }
+
+    private JPanel createCertificateOfIndigencyForm() {
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        formPanel.setOpaque(false);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.anchor = GridBagConstraints.WEST;
+
+        // Add common fields
+        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.HORIZONTAL;
+        formPanel.add(createCommonFields(), gbc);
+
+        // Specific fields for Indigency Certificate
+        gbc.gridwidth = 1; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+
+        // Age
+        gbc.gridx = 0; gbc.gridy = 1;
+        formPanel.add(new JLabel("Age:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField ageField = new JTextField(20);
+        formPanel.add(ageField, gbc);
+
+        // Civil Status
+        gbc.gridx = 0; gbc.gridy = 2; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        formPanel.add(new JLabel("Civil Status:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        String[] civilStatus = {"Single", "Married", "Widowed", "Divorced", "Separated"};
+        JComboBox<String> civilStatusCombo = new JComboBox<>(civilStatus);
+        formPanel.add(civilStatusCombo, gbc);
+
+        // Monthly Income
+        gbc.gridx = 0; gbc.gridy = 3; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        formPanel.add(new JLabel("Monthly Income:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField incomeField = new JTextField(20);
+        formPanel.add(incomeField, gbc);
+
+        // Purpose
+        gbc.gridx = 0; gbc.gridy = 4; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        formPanel.add(new JLabel("Purpose:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.BOTH; gbc.weightx = 1.0; gbc.weighty = 1.0;
+        JTextArea purposeArea = new JTextArea(3, 20);
+        purposeArea.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+        JScrollPane purposeScroll = new JScrollPane(purposeArea);
+        formPanel.add(purposeScroll, gbc);
+
+        return formPanel;
+    }
+
+    private JPanel createBarangayCertificateForBusinessForm() {
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        formPanel.setOpaque(false);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.anchor = GridBagConstraints.WEST;
+
+        // Add common fields
+        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.HORIZONTAL;
+        formPanel.add(createCommonFields(), gbc);
+
+        gbc.gridwidth = 1; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+
+        // Business Name
+        gbc.gridx = 0; gbc.gridy = 1;
+        formPanel.add(new JLabel("Business Name:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField businessNameField = new JTextField(20);
+        formPanel.add(businessNameField, gbc);
+
+        // Business Type
+        gbc.gridx = 0; gbc.gridy = 2; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        formPanel.add(new JLabel("Business Type:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        String[] businessTypes = {"Retail", "Service", "Manufacturing", "Food", "Other"};
+        JComboBox<String> businessTypeCombo = new JComboBox<>(businessTypes);
+        formPanel.add(businessTypeCombo, gbc);
+
+        // Business Address
+        gbc.gridx = 0; gbc.gridy = 3; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        formPanel.add(new JLabel("Business Address:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField businessAddressField = new JTextField(20);
+        formPanel.add(businessAddressField, gbc);
+
+        // Nature of Business
+        gbc.gridx = 0; gbc.gridy = 4; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        formPanel.add(new JLabel("Nature of Business:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.BOTH; gbc.weightx = 1.0; gbc.weighty = 1.0;
+        JTextArea natureArea = new JTextArea(3, 20);
+        natureArea.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+        JScrollPane natureScroll = new JScrollPane(natureArea);
+        formPanel.add(natureScroll, gbc);
+
+        return formPanel;
+    }
+
+    private JPanel createCertificateOfResidencyForm() {
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        formPanel.setOpaque(false);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.anchor = GridBagConstraints.WEST;
+
+        // Add common fields
+        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.HORIZONTAL;
+        formPanel.add(createCommonFields(), gbc);
+
+        gbc.gridwidth = 1; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+
+        // Years of Residency
+        gbc.gridx = 0; gbc.gridy = 1;
+        formPanel.add(new JLabel("Years of Residency:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField yearsField = new JTextField(20);
+        formPanel.add(yearsField, gbc);
+
+        // Date of Birth
+        gbc.gridx = 0; gbc.gridy = 2; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        formPanel.add(new JLabel("Date of Birth:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField dobField = new JTextField(20);
+        dobField.setToolTipText("MM/DD/YYYY");
+        formPanel.add(dobField, gbc);
+
+        // Place of Birth
+        gbc.gridx = 0; gbc.gridy = 3; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        formPanel.add(new JLabel("Place of Birth:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField pobField = new JTextField(20);
+        formPanel.add(pobField, gbc);
+
+        // Purpose
+        gbc.gridx = 0; gbc.gridy = 4; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        formPanel.add(new JLabel("Purpose:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.BOTH; gbc.weightx = 1.0; gbc.weighty = 1.0;
+        JTextArea purposeArea = new JTextArea(3, 20);
+        purposeArea.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+        JScrollPane purposeScroll = new JScrollPane(purposeArea);
+        formPanel.add(purposeScroll, gbc);
+
+        return formPanel;
+    }
+
+    private JPanel createBarangayIDForm() {
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        formPanel.setOpaque(false);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.anchor = GridBagConstraints.WEST;
+
+        // Add common fields
+        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.HORIZONTAL;
+        formPanel.add(createCommonFields(), gbc);
+
+        gbc.gridwidth = 1; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+
+        // Date of Birth
+        gbc.gridx = 0; gbc.gridy = 1;
+        formPanel.add(new JLabel("Date of Birth:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField dobField = new JTextField(20);
+        dobField.setToolTipText("MM/DD/YYYY");
+        formPanel.add(dobField, gbc);
+
+        // Emergency Contact
+        gbc.gridx = 0; gbc.gridy = 2; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        formPanel.add(new JLabel("Emergency Contact:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField emergencyContactField = new JTextField(20);
+        formPanel.add(emergencyContactField, gbc);
+
+        // Emergency Contact Number
+        gbc.gridx = 0; gbc.gridy = 3; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        formPanel.add(new JLabel("Emergency Contact Number:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField emergencyNumberField = new JTextField(20);
+        formPanel.add(emergencyNumberField, gbc);
+
+        // Photo Upload Button
+        gbc.gridx = 0; gbc.gridy = 4; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        formPanel.add(new JLabel("Photo:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JButton photoButton = new JButton("Upload Photo");
+        photoButton.setBackground(new Color(128, 0, 0));
+        photoButton.setForeground(Color.WHITE);
+        formPanel.add(photoButton, gbc);
+
+        return formPanel;
+    }
+
+    private JPanel createCertificateOfSoloParentForm() {
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        formPanel.setOpaque(false);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.anchor = GridBagConstraints.WEST;
+
+        // Add common fields
+        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.HORIZONTAL;
+        formPanel.add(createCommonFields(), gbc);
+
+        gbc.gridwidth = 1; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+
+        // Date of Birth
+        gbc.gridx = 0; gbc.gridy = 1;
+        formPanel.add(new JLabel("Date of Birth:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField dobField = new JTextField(20);
+        dobField.setToolTipText("MM/DD/YYYY");
+        formPanel.add(dobField, gbc);
+
+        // Number of Children
+        gbc.gridx = 0; gbc.gridy = 2; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        formPanel.add(new JLabel("Number of Children:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField childrenField = new JTextField(20);
+        formPanel.add(childrenField, gbc);
+
+        // Monthly Income
+        gbc.gridx = 0; gbc.gridy = 3; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        formPanel.add(new JLabel("Monthly Income:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField incomeField = new JTextField(20);
+        formPanel.add(incomeField, gbc);
+
+        // Employment Status
+        gbc.gridx = 0; gbc.gridy = 4; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        formPanel.add(new JLabel("Employment Status:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        String[] employmentStatus = {"Employed", "Unemployed", "Self-Employed", "Part-time"};
+        JComboBox<String> employmentCombo = new JComboBox<>(employmentStatus);
+        formPanel.add(employmentCombo, gbc);
+
+        // Reason for Solo Parent Status
+        gbc.gridx = 0; gbc.gridy = 5; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        formPanel.add(new JLabel("Reason for Solo Parent Status:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        String[] reasons = {"Death of Spouse", "Abandonment", "Separation", "Single Mother", "Other"};
+        JComboBox<String> reasonCombo = new JComboBox<>(reasons);
+        formPanel.add(reasonCombo, gbc);
+
+        // Additional Details
+        gbc.gridx = 0; gbc.gridy = 6; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        formPanel.add(new JLabel("Additional Details:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.BOTH; gbc.weightx = 1.0; gbc.weighty = 1.0;
+        JTextArea detailsArea = new JTextArea(3, 20);
+        detailsArea.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+        JScrollPane detailsScroll = new JScrollPane(detailsArea);
+        formPanel.add(detailsScroll, gbc);
+
+        return formPanel;
+    }
+
+    private JPanel createIndividualClearanceForm() {
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        formPanel.setOpaque(false);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.anchor = GridBagConstraints.WEST;
+
+        // Add common fields
+        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.HORIZONTAL;
+        formPanel.add(createCommonFields(), gbc);
+
+        gbc.gridwidth = 1; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+
+        // Date of Birth
+        gbc.gridx = 0; gbc.gridy = 1;
+        formPanel.add(new JLabel("Date of Birth:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField dobField = new JTextField(20);
+        dobField.setToolTipText("MM/DD/YYYY");
+        formPanel.add(dobField, gbc);
+
+        // Place of Birth
+        gbc.gridx = 0; gbc.gridy = 2; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        formPanel.add(new JLabel("Place of Birth:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField pobField = new JTextField(20);
+        formPanel.add(pobField, gbc);
+
+        // Civil Status
+        gbc.gridx = 0; gbc.gridy = 3; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        formPanel.add(new JLabel("Civil Status:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        String[] civilStatus = {"Single", "Married", "Widowed", "Divorced", "Separated"};
+        JComboBox<String> civilStatusCombo = new JComboBox<>(civilStatus);
+        formPanel.add(civilStatusCombo, gbc);
+
+        // Years of Residency
+        gbc.gridx = 0; gbc.gridy = 4; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        formPanel.add(new JLabel("Years of Residency:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField yearsField = new JTextField(20);
+        formPanel.add(yearsField, gbc);
+
+        // Clearance Type
+        gbc.gridx = 0; gbc.gridy = 5; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        formPanel.add(new JLabel("Clearance Type:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        String[] clearanceTypes = {"Employment", "Travel", "Loan Application", "School Requirement", "Other"};
+        JComboBox<String> clearanceTypeCombo = new JComboBox<>(clearanceTypes);
+        formPanel.add(clearanceTypeCombo, gbc);
+
+        // Purpose
+        gbc.gridx = 0; gbc.gridy = 6; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        formPanel.add(new JLabel("Purpose:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.BOTH; gbc.weightx = 1.0; gbc.weighty = 1.0;
+        JTextArea purposeArea = new JTextArea(3, 20);
+        purposeArea.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+        JScrollPane purposeScroll = new JScrollPane(purposeArea);
+        formPanel.add(purposeScroll, gbc);
+
+        return formPanel;
+    }
+
+    private JPanel createBusinessClearanceForm() {
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        formPanel.setOpaque(false);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.anchor = GridBagConstraints.WEST;
+
+        // Add common fields (Owner information)
+        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.HORIZONTAL;
+        JPanel ownerPanel = createCommonFields();
+        ownerPanel.setBorder(BorderFactory.createTitledBorder("Owner Information"));
+        formPanel.add(ownerPanel, gbc);
+
+        gbc.gridwidth = 1; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+
+        // Business Name
+        gbc.gridx = 0; gbc.gridy = 1;
+        formPanel.add(new JLabel("Business Name:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField businessNameField = new JTextField(20);
+        formPanel.add(businessNameField, gbc);
+
+        // Business Address
+        gbc.gridx = 0; gbc.gridy = 2; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        formPanel.add(new JLabel("Business Address:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField businessAddressField = new JTextField(20);
+        formPanel.add(businessAddressField, gbc);
+
+        // Business Type
+        gbc.gridx = 0; gbc.gridy = 3; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        formPanel.add(new JLabel("Business Type:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        String[] businessTypes = {"Retail", "Service", "Manufacturing", "Food & Beverage", "Healthcare", "Technology", "Other"};
+        JComboBox<String> businessTypeCombo = new JComboBox<>(businessTypes);
+        formPanel.add(businessTypeCombo, gbc);
+
+        // Date Established
+        gbc.gridx = 0; gbc.gridy = 4; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        formPanel.add(new JLabel("Date Established:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField dateEstablishedField = new JTextField(20);
+        dateEstablishedField.setToolTipText("MM/DD/YYYY");
+        formPanel.add(dateEstablishedField, gbc);
+
+        // Number of Employees
+        gbc.gridx = 0; gbc.gridy = 5; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        formPanel.add(new JLabel("Number of Employees:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField employeesField = new JTextField(20);
+        formPanel.add(employeesField, gbc);
+
+        // Nature of Business
+        gbc.gridx = 0; gbc.gridy = 6; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        formPanel.add(new JLabel("Nature of Business:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.BOTH; gbc.weightx = 1.0; gbc.weighty = 1.0;
+        JTextArea natureArea = new JTextArea(3, 20);
+        natureArea.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+        JScrollPane natureScroll = new JScrollPane(natureArea);
+        formPanel.add(natureScroll, gbc);
+
+        return formPanel;
+    }
+
+    private JPanel createBusinessPermitForm() {
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        formPanel.setOpaque(false);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.anchor = GridBagConstraints.WEST;
+
+        // Owner Information
+        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.HORIZONTAL;
+        JPanel ownerPanel = createCommonFields();
+        ownerPanel.setBorder(BorderFactory.createTitledBorder("Business Owner Information"));
+        formPanel.add(ownerPanel, gbc);
+
+        gbc.gridwidth = 1; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+
+        // Business Registration Number
+        gbc.gridx = 0; gbc.gridy = 1;
+        formPanel.add(new JLabel("DTI/SEC Registration No:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField registrationField = new JTextField(20);
+        formPanel.add(registrationField, gbc);
+
+        // Business Name
+        gbc.gridx = 0; gbc.gridy = 2; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        formPanel.add(new JLabel("Business Name:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField businessNameField = new JTextField(20);
+        formPanel.add(businessNameField, gbc);
+
+        // Business Address
+        gbc.gridx = 0; gbc.gridy = 3; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        formPanel.add(new JLabel("Business Address:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField businessAddressField = new JTextField(20);
+        formPanel.add(businessAddressField, gbc);
+
+        // Business Category
+        gbc.gridx = 0; gbc.gridy = 4; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        formPanel.add(new JLabel("Business Category:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        String[] categories = {"Micro", "Small", "Medium", "Large"};
+        JComboBox<String> categoryCombo = new JComboBox<>(categories);
+        formPanel.add(categoryCombo, gbc);
+
+        // Capital Investment
+        gbc.gridx = 0; gbc.gridy = 5; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        formPanel.add(new JLabel("Capital Investment:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField capitalField = new JTextField(20);
+        formPanel.add(capitalField, gbc);
+
+        // Number of Employees
+        gbc.gridx = 0; gbc.gridy = 6; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        formPanel.add(new JLabel("Number of Employees:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField employeesField = new JTextField(20);
+        formPanel.add(employeesField, gbc);
+
+        // Gross Sales/Receipts
+        gbc.gridx = 0; gbc.gridy = 7; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        formPanel.add(new JLabel("Expected Gross Sales/Receipts:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField grossSalesField = new JTextField(20);
+        formPanel.add(grossSalesField, gbc);
+
+        // Business Activities
+        gbc.gridx = 0; gbc.gridy = 8; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        formPanel.add(new JLabel("Business Activities:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.BOTH; gbc.weightx = 1.0; gbc.weighty = 1.0;
+        JTextArea activitiesArea = new JTextArea(3, 20);
+        activitiesArea.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+        JScrollPane activitiesScroll = new JScrollPane(activitiesArea);
+        formPanel.add(activitiesScroll, gbc);
+
+        return formPanel;
+    }
+
+    private void updateInputForm(String documentType) {
+        // Clear existing content
+        dynamicFormContainer.removeAll();
+
+        // Add new form based on document type
+        switch (documentType) {
+            case "Certificate of Indigency":
+                dynamicFormContainer.add(createCertificateOfIndigencyForm(), BorderLayout.CENTER);
+                break;
+            case "Barangay Certificate for Business":
+                dynamicFormContainer.add(createBarangayCertificateForBusinessForm(), BorderLayout.CENTER);
+                break;
+            case "Certificate of Residency":
+                dynamicFormContainer.add(createCertificateOfResidencyForm(), BorderLayout.CENTER);
+                break;
+            case "Certificate of Solo Parent":
+                dynamicFormContainer.add(createCertificateOfSoloParentForm(), BorderLayout.CENTER);
+                break;
+            case "Barangay ID":
+                dynamicFormContainer.add(createBarangayIDForm(), BorderLayout.CENTER);
+                break;
+            case "Individual Barangay Clearance":
+                dynamicFormContainer.add(createIndividualClearanceForm(), BorderLayout.CENTER);
+                break;
+            case "Business Barangay Clearance":
+                dynamicFormContainer.add(createBusinessClearanceForm(), BorderLayout.CENTER);
+                break;
+            case "Business Permit":
+                dynamicFormContainer.add(createBusinessPermitForm(), BorderLayout.CENTER);
+                break;
+            default:
+                JLabel instructionLabel = new JLabel("Please select a document type to display the form");
+                instructionLabel.setFont(new Font("Arial", Font.ITALIC, 12));
+                instructionLabel.setForeground(Color.GRAY);
+                instructionLabel.setHorizontalAlignment(SwingConstants.CENTER);
+                dynamicFormContainer.add(instructionLabel, BorderLayout.CENTER);
+                break;
+        }
+
+        // Refresh the display
+        dynamicFormContainer.revalidate();
+        dynamicFormContainer.repaint();
+    }
+
+    // CRUD Action Handlers (placeholder methods)
+    private void handleAddDocument() {
+        System.out.println("Add document action triggered");
+        // Implementation will connect to database
+    }
+
+    private void handleUpdateDocument() {
+        System.out.println("Update document action triggered");
+        // Implementation will connect to database
+    }
+
+    private void handleDeleteDocument() {
+        System.out.println("Delete document action triggered");
+        // Implementation will connect to database
+    }
+
+    private void handleClearForm() {
+        System.out.println("Clear form action triggered");
+        // Clear all input fields
+    }
+
+    private void handlePrintDocument() {
+        System.out.println("Print document action triggered");
+        // Generate and print document
+    }
+
+    private JPanel createAboutContent() {
+        JPanel aboutPanel = new JPanel();
+        aboutPanel.setLayout(new BorderLayout());
+        aboutPanel.setOpaque(false);
+
+        // Create scrollable content
+        JPanel contentPanel = new JPanel();
+        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+        contentPanel.setOpaque(false);
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
+
+        // System Information Section
+        JPanel systemInfoPanel = createInfoSection("System Information", getSystemInfoContent());
+        contentPanel.add(systemInfoPanel);
+        contentPanel.add(Box.createRigidArea(new Dimension(0, 20)));
+
+        // User Manual Section
+        JPanel userManualPanel = createInfoSection("User Manual", getUserManualContent());
+        contentPanel.add(userManualPanel);
+        contentPanel.add(Box.createRigidArea(new Dimension(0, 20)));
+
+        // Contact Information Section
+        JPanel contactPanel = createInfoSection("Technical Support", getContactInfoContent());
+        contentPanel.add(contactPanel);
+        contentPanel.add(Box.createRigidArea(new Dimension(0, 20)));
+
+        // Credits Section
+        JPanel creditsPanel = createInfoSection("Development Team", getCreditsContent());
+        contentPanel.add(creditsPanel);
+
+        // Create scroll pane
+        JScrollPane scrollPane = new JScrollPane(contentPanel);
+        scrollPane.setOpaque(false);
+        scrollPane.getViewport().setOpaque(false);
+        scrollPane.setBorder(null);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+
+        // Customize scrollbar
+        scrollPane.getVerticalScrollBar().setOpaque(false);
+        scrollPane.getVerticalScrollBar().setBackground(new Color(0, 0, 0, 0));
+
+        aboutPanel.add(scrollPane, BorderLayout.CENTER);
+
+        return aboutPanel;
+    }
+
+    private JPanel createInfoSection(String title, String content) {
+        JPanel sectionPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                // Semi-transparent background
+                g2d.setColor(new Color(255, 255, 255, 200));
+                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
+
+                // Border
+                g2d.setColor(new Color(128, 0, 0, 150));
+                g2d.setStroke(new BasicStroke(1));
+                g2d.drawRoundRect(0, 0, getWidth()-1, getHeight()-1, 10, 10);
+
+                g2d.dispose();
+                super.paintComponent(g);
+            }
+        };
+        sectionPanel.setLayout(new BorderLayout());
+        sectionPanel.setOpaque(false);
+        sectionPanel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
+
+        // Title
+        JLabel titleLabel = new JLabel(title);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        titleLabel.setForeground(new Color(128, 0, 0));
+        titleLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
+
+        // Content
+        JTextArea contentArea = new JTextArea(content);
+        contentArea.setFont(new Font("Arial", Font.PLAIN, 12));
+        contentArea.setEditable(false);
+        contentArea.setOpaque(false);
+        contentArea.setForeground(new Color(60, 60, 60));
+        contentArea.setLineWrap(true);
+        contentArea.setWrapStyleWord(true);
+
+        sectionPanel.add(titleLabel, BorderLayout.NORTH);
+        sectionPanel.add(contentArea, BorderLayout.CENTER);
+
+        return sectionPanel;
+    }
+
+    private String getSystemInfoContent() {
+        return String.format(
+                "System Name: %s\n\n" +
+                        "Version: %s\n" +
+                        "Build Date: %s\n" +
+                        "Platform: Java Swing Application\n" +
+                        "Java Version: %s\n" +
+                        "Operating System: %s\n\n" +
+                        "Description:\n" +
+                        "This system is designed to streamline the management of barangay market area services, " +
+                        "providing efficient tools for market administration, vendor management, and service coordination. " +
+                        "The application features an intuitive interface with slideshow backgrounds and organized navigation.",
+                SYSTEM_NAME, VERSION, BUILD_DATE,
+                System.getProperty("java.version"),
+                System.getProperty("os.name") + " " + System.getProperty("os.version")
+        );
+    }
+
+    private String getUserManualContent() {
+        return "Quick Start Guide:\n\n" +
+                "1. Navigation:\n" +
+                "   • Use the left panel menu to navigate between sections\n" +
+                "   • Dashboard: Returns to the main slideshow view\n" +
+                "   • Group sections: Access specific management functions\n" +
+                "   • About: View system information and help\n\n" +
+                "2. Interface Features:\n" +
+                "   • Background slideshow automatically cycles through images\n" +
+                "   • Semi-transparent overlays maintain visual appeal\n" +
+                "   • Admin login available at the bottom of the left panel\n\n" +
+                "3. Content Areas:\n" +
+                "   • Each section displays relevant information and tools\n" +
+                "   • Use 'Return to Main' to go back to the slideshow\n" +
+                "   • Content is displayed with readable overlays\n\n" +
+                "4. System Requirements:\n" +
+                "   • Java Runtime Environment 8 or higher\n" +
+                "   • Minimum screen resolution: 1024x768\n" +
+                "   • Images folder with slideshow pictures (optional)";
+    }
+
+    private String getContactInfoContent() {
+        return "Technical Support Information:\n\n" +
+                "For technical assistance, please contact:\n\n" +
+                "Primary Support:\n" +
+                "📧 Email: support@barangaymarket.gov.ph\n" +
+                "📞 Phone: (02) 8XXX-XXXX\n" +
+                "🕒 Hours: Monday-Friday, 8:00 AM - 5:00 PM\n\n" +
+                "Emergency Support:\n" +
+                "📧 Email: emergency@barangaymarket.gov.ph\n" +
+                "📞 Hotline: (02) 8XXX-YYYY\n" +
+                "🕒 Hours: 24/7 for critical system issues\n\n" +
+                "Local IT Department:\n" +
+                "🏢 Address: Barangay Hall, IT Department\n" +
+                "           Local Government Building\n" +
+                "📧 Email: it@barangay.gov.ph\n\n" +
+                "System Administrator:\n" +
+                "👤 Name: [System Admin Name]\n" +
+                "📧 Email: admin@barangaymarket.gov.ph\n\n" +
+                "When reporting issues, please include:\n" +
+                "• Error messages (if any)\n" +
+                "• Steps to reproduce the problem\n" +
+                "• System information\n" +
+                "• Screenshots (if applicable)";
+    }
+
+    private String getCreditsContent() {
+        return String.format(
+                "Development Team Credits:\n\n" +
+                        "Project Team: %s\n\n" +
+                        "System Architecture & Design:\n" +
+                        "• Lead Developer: [Lead Developer Name]\n" +
+                        "• UI/UX Designer: [Designer Name]\n" +
+                        "• System Analyst: [Analyst Name]\n\n" +
+                        "Development Contributors:\n" +
+                        "• Frontend Development: [Frontend Dev Team]\n" +
+                        "• Backend Integration: [Backend Dev Team]\n" +
+                        "• Quality Assurance: [QA Team]\n\n" +
+                        "Project Management:\n" +
+                        "• Project Manager: [PM Name]\n" +
+                        "• Technical Lead: [Tech Lead Name]\n" +
+                        "• Business Analyst: [BA Name]\n\n" +
+                        "Special Thanks:\n" +
+                        "• Barangay Officials for requirements and feedback\n" +
+                        "• Market vendors for user testing and insights\n" +
+                        "• Local government IT support team\n" +
+                        "• Community stakeholders for continuous support\n\n" +
+                        "Technology Stack:\n" +
+                        "• Java Swing for GUI framework\n" +
+                        "• Custom graphics and painting for visual effects\n" +
+                        "• Timer-based slideshow implementation\n" +
+                        "• Layered pane architecture for transparency effects\n\n" +
+                        "Version History:\n" +
+                        "• v1.0.0 - Initial release with core functionality\n" +
+                        "• Future updates will include additional features\n\n" +
+                        "© 2025 Local Government Development Team\n" +
+                        "All rights reserved.",
+                DEVELOPER_TEAM
+        );
     }
 
     private void initializeSlideshow() {
@@ -800,10 +1899,21 @@ public class Main extends JFrame {
 
             // Handle different menu items
             switch (menuItem.toLowerCase()) {
-                case "home":
-                    // For home, add the complete home dashboard
-                    JPanel homeContent = createHomeContent();
-                    rightPanel.add(homeContent, BorderLayout.CENTER);
+                case "dashboard":
+                    // For dashboard, add the complete dashboard
+                    JPanel dashboardContent = createDashboardContent();
+                    rightPanel.add(dashboardContent, BorderLayout.CENTER);
+                    break;
+
+                case "barangay document application":
+                    JPanel software1Content = createBarangayDocumentContent();
+                    rightPanel.add(software1Content, BorderLayout.CENTER);
+                    break;
+
+                case "about":
+                    // For dashboard, add the complete dashboard
+                    JPanel aboutContent = createAboutContent();
+                    rightPanel.add(aboutContent, BorderLayout.CENTER);
                     break;
 
                 default:
@@ -817,27 +1927,8 @@ public class Main extends JFrame {
         }
 
         private void createGenericContent(String menuTitle) {
-            // Create content panel with semi-transparent background for non-home items
-            JPanel contentPanel = new JPanel() {
-                @Override
-                protected void paintComponent(Graphics g) {
-                    Graphics2D g2d = (Graphics2D) g.create();
-                    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-                    // Semi-transparent white background for readability
-                    g2d.setColor(new Color(255, 255, 255, 220));
-                    g2d.fillRoundRect(20, 20, getWidth()-40, getHeight()-40, 15, 15);
-
-                    // Border
-                    g2d.setColor(new Color(128, 0, 0, 100));
-                    g2d.setStroke(new BasicStroke(2));
-                    g2d.drawRoundRect(20, 20, getWidth()-40, getHeight()-40, 15, 15);
-
-                    g2d.dispose();
-                    super.paintComponent(g);
-                }
-            };
-            contentPanel.setLayout(new BorderLayout());
+            JPanel contentPanel = createStyledPanel();
+            contentPanel.setLayout(new BorderLayout(10, 10));
             contentPanel.setOpaque(false);
 
             JLabel titleLabel = new JLabel(menuTitle + " Section");
