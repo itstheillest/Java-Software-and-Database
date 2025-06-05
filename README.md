@@ -1,29 +1,29 @@
-<h1>Java-Software-and-Database</h1> 
+# Java-Software-and-Database
 GUI and connecting of websites (?)
 
-<h1>FAQ:</h1> 
+# Frequently Asked Questions:
 
-1.  What does it do?
+### What does it do?
 
-   <ul><li>it is a Java Software and Database that is currently being developed.</li></ul> 
+- It is a Java Software and Database that is currently being developed.
 
-2. Who would benefit from this program.
+### Who would benefit from this program.
 
-<ul><li>Barangay Market Area</li></ul> 
-
-
-3. If I download this, would I get hacked?
-
-<ul><li>Of course not </li></ul> 
+- Barangay Market Area
 
 
-4. How can I run this program?
+### If I download this, would I get hacked?
 
-<ul><li>Download the program into zip file, extract and use an IDE (IDEA, Eclipse or VSCode with Java plugins and Java SDK will do). Open "main" folder, select "StartApplication" and run the program.</li></ul>
+- Of course not 
 
 
-5. Can it store the data that I input?
+### How can I run this program?
 
-<ul><li>Currently, the program doesn't have a database yet so it cannot store any input yet. </li></ul>
+- Download the program into zip file, extract and use an IDE (IDEA, Eclipse or VSCode with Java plugins and Java SDK will do). Open "main" folder, select "StartApplication" and run the program.
+
+
+### Can it store the data that I input?
+
+- Currently, the program doesn't have a database yet so it cannot store any input yet. 
    
 
