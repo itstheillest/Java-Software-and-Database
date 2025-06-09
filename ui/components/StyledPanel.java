@@ -25,7 +25,7 @@ public class StyledPanel extends JPanel {
         g2d.fillRoundRect(15, 15, getWidth()-30, getHeight()-30, 20, 20);
 
         // Border
-        g2d.setColor(new Color(128, 0, 0, 120));
+        g2d.setColor(new Color(75, 83, 32, 120));
         g2d.setStroke(new BasicStroke(2));
         g2d.drawRoundRect(15, 15, getWidth()-30, getHeight()-30, 20, 20);
 
@@ -68,7 +68,7 @@ public class StyledPanel extends JPanel {
             g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
             // Create a more solid overlay - increased opacity from 120 to 180
-            g2d.setColor(new Color(82, 115, 62, 242)); // Moss green with 95% opacity (more solid)
+            g2d.setColor(new Color(138, 154, 91, 242)); // Moss green with 95% opacity (more solid)
             g2d.fillRect(0, 0, getWidth(), getHeight());
 
             // Add a subtle gradient for depth - complementary moss green tones

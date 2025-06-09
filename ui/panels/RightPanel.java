@@ -3,7 +3,9 @@ package ui.panels;
 import main.Main;
 import ui.panels.rightpanel.BarangayDocumentContent;
 import ui.panels.rightpanel.DashboardContent;
+import ui.panels.rightpanel.FileComplaintContent;
 import ui.panels.rightpanel.AboutContent;
+import utils.ComponentFactory;
 
 import javax.swing.*;
 import java.awt.*;
@@ -12,6 +14,7 @@ public class RightPanel{
     private Main mainFrame;
     private JPanel rightPanel;
     private DashboardContent dashboardContent;
+    private FileComplaintContent fileComplaintContent;
     private BarangayDocumentContent barangayDocumentContent;
     private AboutContent aboutContent;
 
@@ -50,24 +53,14 @@ public class RightPanel{
         return rightPanel;
     }
 
-    public JPanel createDashboardContent() {
+    public JPanel createDashboardContent(String title) {
         JPanel dashboardPanel = mainFrame.createStyledPanel();
         dashboardPanel.setLayout(new BorderLayout(10, 10));
         dashboardPanel.setOpaque(false);
 
         // Header Section
-        JPanel headerSection = new JPanel(new BorderLayout());
-        headerSection.setOpaque(false);
-        headerSection.setBorder(BorderFactory.createEmptyBorder(25, 30, 10, 30));
-
-        JLabel welcomeLabel = new JLabel("Welcome to Dashboard");
-        welcomeLabel.setFont(new Font("Arial", Font.BOLD, 24));
-        welcomeLabel.setForeground(new Color(128, 0, 0));
-
-        JLabel dateTimeLabel = mainFrame.createDateTimeLabel();
-
-        headerSection.add(welcomeLabel, BorderLayout.WEST);
-        headerSection.add(dateTimeLabel, BorderLayout.EAST);
+        JPanel headerSection = ComponentFactory.getHeaderPanel(title);
+        dashboardPanel.add(headerSection, BorderLayout.NORTH);
 
         // Use the DashboardContent instance to create panels
         JPanel statsPanel = dashboardContent.createStatsPanel();
@@ -102,83 +95,35 @@ public class RightPanel{
         gbc.gridwidth = 2; gbc.weightx = 1.0; gbc.weighty = 0.3;
         contentArea.add(announcementsPanel, gbc);
 
-        dashboardPanel.add(headerSection, BorderLayout.NORTH);
         dashboardPanel.add(contentArea, BorderLayout.CENTER);
 
         return dashboardPanel;
     }
 
-    public JPanel createBarangayDocumentContent() {
-        JPanel documentPanel = mainFrame.createStyledPanel();
-        documentPanel.setLayout(new BorderLayout(10, 10));
-        documentPanel.setOpaque(false);
+    public JPanel createBarangayDocumentContent(String title) {
+        JPanel complaintPanel = mainFrame.createStyledPanel();
+        complaintPanel.setLayout(new BorderLayout(10, 10));
+        complaintPanel.setOpaque(false);
 
-        // Header Section
-        JPanel headerSection = new JPanel(new BorderLayout());
-        headerSection.setOpaque(false);
-        headerSection.setBorder(BorderFactory.createEmptyBorder(25, 30, 10, 30));
-
-        JLabel titleLabel = new JLabel("Barangay Document Application");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
-        titleLabel.setForeground(new Color(128, 0, 0));
-
-        JLabel statusLabel = new JLabel("Select document type to begin");
-        statusLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-        statusLabel.setForeground(Color.GRAY);
-
-        headerSection.add(titleLabel, BorderLayout.WEST);
-        headerSection.add(statusLabel, BorderLayout.EAST);
-
-        // Document Type Selection Panel
-        JPanel documentTypePanel = barangayDocumentContent.createDocumentTypePanel();
-
-        // Dynamic Input Form Panel
-        JPanel inputFormPanel = barangayDocumentContent.createDynamicInputFormPanel();
-
-        // CRUD Actions Panel
-        JPanel crudActionsPanel = barangayDocumentContent.createCrudActionsPanel();
-
-        // Document Records Table Panel
-        JPanel recordsTablePanel = barangayDocumentContent.createDocumentRecordsPanel();
-
-        // Search and Filter Panel
-        JPanel searchFilterPanel = barangayDocumentContent.createSearchFilterPanel();
+        // Get the complete card panel that contains both views
+        JPanel cardPanel = barangayDocumentContent.getCardPanel();
 
         // Main content area
-        JPanel contentArea = new JPanel(new GridBagLayout());
+        JPanel contentArea = new JPanel(new BorderLayout());
         contentArea.setOpaque(false);
         contentArea.setBorder(BorderFactory.createEmptyBorder(0, 20, 20, 20));
+        contentArea.add(cardPanel, BorderLayout.CENTER);
 
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.fill = GridBagConstraints.BOTH;
-        gbc.insets = new Insets(5, 5, 5, 5);
+        complaintPanel.add(contentArea, BorderLayout.CENTER);
 
-        // First row - Document Type Selection and Search/Filter
-        gbc.gridx = 0; gbc.gridy = 0;
-        gbc.gridwidth = 1; gbc.weightx = 0.6; gbc.weighty = 0.15;
-        contentArea.add(documentTypePanel, gbc);
-
-        gbc.gridx = 1; gbc.weightx = 0.4;
-        contentArea.add(searchFilterPanel, gbc);
-
-        // Second row - Input Form and CRUD Actions
-        gbc.gridx = 0; gbc.gridy = 1;
-        gbc.weightx = 0.7; gbc.weighty = 0.4;
-        contentArea.add(inputFormPanel, gbc);
-
-        gbc.gridx = 1; gbc.weightx = 0.3;
-        contentArea.add(crudActionsPanel, gbc);
-
-        // Third row - Records Table (full width)
-        gbc.gridx = 0; gbc.gridy = 2;
-        gbc.gridwidth = 2; gbc.weightx = 1.0; gbc.weighty = 0.45;
-        contentArea.add(recordsTablePanel, gbc);
-
-        documentPanel.add(headerSection, BorderLayout.NORTH);
-        documentPanel.add(contentArea, BorderLayout.CENTER);
-
-        return documentPanel;
+        return complaintPanel;
     }
+
+    //public JPanel createFileComplaintContent(){}
+
+    //public JPanel createBarangayTanodRecordsContent(){}
+
+    //public JPanel createHealthSystemRecordsContent(){}
 
     public JPanel createAboutContent() {
         JPanel aboutPanel = new JPanel();

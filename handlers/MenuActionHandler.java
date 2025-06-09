@@ -39,13 +39,28 @@ public class MenuActionHandler {
         switch (menuItem.toLowerCase()) {
             case "dashboard":
                 // For dashboard, add the complete dashboard
-                JPanel dashboardContent = rightPanelManager.createDashboardContent();
+                JPanel dashboardContent = rightPanelManager.createDashboardContent("Welcome to Dashboard");
                 rightPanel.add(dashboardContent, BorderLayout.CENTER);
                 break;
 
             case "barangay document application":
-                JPanel software1Content = rightPanelManager.createBarangayDocumentContent();
+                JPanel software1Content = rightPanelManager.createBarangayDocumentContent("Barangay Document Application");
                 rightPanel.add(software1Content, BorderLayout.CENTER);
+                break;
+
+            case "file complaints":
+                //Inset code here
+                createGenericContent(menuItem);
+                break;
+
+            case "barangay tanod records":
+                //Insert code here
+                createGenericContent(menuItem);
+                break;
+
+            case "health system records":
+                //Insert code here
+                createGenericContent(menuItem);
                 break;
 
             case "about":

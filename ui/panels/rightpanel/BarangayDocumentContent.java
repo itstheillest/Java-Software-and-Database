@@ -1,796 +1,460 @@
 package ui.panels.rightpanel;
 
-import main.Main;
+import main.ApplicationConstants;
+import utils.ComponentFactory;
+import ui.forms.DocumentFactory;
+
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
-import javax.swing.table.JTableHeader;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 public class BarangayDocumentContent {
-    private Main mainFrame;
+    // ==================== FIELDS ====================
+    private JFrame mainFrame;
+    private String selectedDocumentType;
+    private JPanel cardPanel; // Main panel with CardLayout
+    private CardLayout cardLayout; // CardLayout manager
     private JPanel dynamicFormContainer;
-    private JScrollPane formScrollPane;
+    private JPanel dynamicRecordsContainer;
 
-    public BarangayDocumentContent(Main mainFrame) {
+    // Card names for easy reference
+    private static final String DOCUMENT_TYPE_CARD = "DOCUMENT_TYPE";
+    private static final String FORM_CARD = "FORM";
+
+    // ==================== CONSTRUCTOR ====================
+    public BarangayDocumentContent(JFrame mainFrame){
         this.mainFrame = mainFrame;
+        setupCardLayout();
     }
 
-    public JPanel createDocumentTypePanel() {
-        JPanel panel = mainFrame.createStyledPanel();
-        panel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(new Color(128, 0, 0), 2),
-                "Document Type Selection",
+    // ==================== INITIALIZATION METHODS ====================
+
+    //Initialize the CardLayout system
+    private void setupCardLayout() {
+        cardLayout = new CardLayout();
+        cardPanel = new JPanel(cardLayout);
+        cardPanel.setOpaque(false);
+
+        // Create and add initial document type panel
+        JPanel documentTypePanel = createInitialPanel();
+        cardPanel.add(documentTypePanel, DOCUMENT_TYPE_CARD);
+
+        // Start with document type selection
+        cardLayout.show(cardPanel, DOCUMENT_TYPE_CARD);
+    }
+
+    // ==================== MAIN PANEL CREATION METHODS ====================
+
+    //This method returns the initial document type selection panel
+    public JPanel createInitialPanel(){
+        JPanel initialPanel = new JPanel(new BorderLayout());
+        initialPanel.setOpaque(false);
+
+        // Create the main content panel
+        JPanel dashboardPanel = new JPanel();
+        dashboardPanel.setLayout(new BorderLayout(10, 10));
+        dashboardPanel.setOpaque(false);
+
+        // Header Section
+        String title = "Barangay Document Application - Select Document Type";
+        JPanel headerSection = ComponentFactory.getHeaderPanel(title);
+        dashboardPanel.add(headerSection, BorderLayout.NORTH);
+
+        // Document type selection panel
+        JPanel documentTypePanel = createDocumentTypePanel();
+
+        // Wrap in a container with padding
+        JPanel contentArea = new JPanel(new BorderLayout());
+        contentArea.setOpaque(false);
+        contentArea.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
+        contentArea.add(documentTypePanel, BorderLayout.CENTER);
+
+        dashboardPanel.add(contentArea, BorderLayout.CENTER);
+        initialPanel.add(dashboardPanel, BorderLayout.CENTER);
+
+        return initialPanel;
+    }
+
+    //This method creates the form layout that appears AFTER document type selection
+    public JPanel createFormLayout(){
+        JPanel formLayout = new JPanel(new BorderLayout());
+        formLayout.setOpaque(false);
+
+        // Create the main content panel with proper styling
+        JPanel dashboardPanel = new JPanel();
+        dashboardPanel.setLayout(new BorderLayout(10, 10));
+        dashboardPanel.setOpaque(false);
+
+        // Header Section showing selected document type (now it will be correct)
+        String title = (selectedDocumentType != null ? selectedDocumentType : "Document Type");
+        JPanel headerSection = ComponentFactory.getHeaderPanel(title);
+        dashboardPanel.add(headerSection, BorderLayout.NORTH);
+
+        // Create the different sections
+        JPanel inputFormPanel = createInputFormLayout();
+        JPanel crudPanel = createCrudLayout();
+        JPanel documentRecordsPanel = createDocumentRecordsLayout();
+
+        // Main content area with GridBagLayout - Only 2 rows
+        JPanel contentArea = new JPanel(new GridBagLayout());
+        contentArea.setOpaque(false);
+        contentArea.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.insets = new Insets(5, 5, 5, 5);
+
+        // First row - Input Form (left) and CRUD Actions (right)
+        gbc.gridy = 0; gbc.gridwidth = 1; gbc.weighty = 0.4;
+        gbc.gridx = 0; gbc.weightx = 0.96;
+        contentArea.add(inputFormPanel, gbc);
+
+        gbc.gridx = 1; gbc.weightx = 0.04;
+        contentArea.add(crudPanel, gbc);
+
+        // Second row - Document Records (full width)
+        gbc.gridx = 0; gbc.gridy = 1;
+        gbc.gridwidth = 2; gbc.weightx = 1.0; gbc.weighty = 0.6;
+        contentArea.add(documentRecordsPanel, gbc);
+
+        dashboardPanel.add(contentArea, BorderLayout.CENTER);
+        formLayout.add(dashboardPanel, BorderLayout.CENTER);
+
+        return formLayout;
+    }
+
+    // ==================== COMPONENT CREATION METHODS ====================
+
+    public JPanel createDocumentTypePanel(){
+        JPanel documentTypePanel = new JPanel(new GridLayout(4, 5, 10, 10));
+        documentTypePanel.setOpaque(false);
+        documentTypePanel.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder(new Color(75, 83, 32, 100), 2),
+                "Choose the Document Type",
                 TitledBorder.LEFT,
                 TitledBorder.TOP,
                 new Font("Arial", Font.BOLD, 14),
-                new Color(128, 0, 0)
+                new Color(75, 83, 32)
         ));
 
-        panel.setLayout(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 10, 5, 10);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
+        String[] documentTypes = ApplicationConstants.DOCUMENT_TYPES;
 
-        JLabel selectLabel = new JLabel("Select Document:");
-        selectLabel.setFont(new Font("Arial", Font.BOLD, 12));
-
-        String[] documentTypes = {
-                "Select Document Type",
-                "Certificate of Indigency",
-                "Barangay Certificate for Business",
-                "Certificate of Residency",
-                "Certificate of Solo Parent",
-                "Barangay ID",
-                "Individual Barangay Clearance",
-                "Business Barangay Clearance",
-                "Business Permit"
+        // Colors for different document types
+        Color[] documentColors = {
+                new Color(75, 83, 32),     // #4B5320 - Dark Olive
+                new Color(106, 115, 55),   // #6A7337 - Olive
+                new Color(138, 154, 91),   // #8A9A5B - Light Olive
+                new Color(189, 143, 66),   // #BD8F42 - Golden Brown
+                new Color(208, 181, 100),  // #D0B564 - Light Golden
+                new Color(11, 18, 21),     // #0B1215 - Very Dark Blue-Green
+                new Color(43, 50, 9),      // #2B3209 - Dark Olive Green
         };
 
-        JComboBox<String> documentTypeCombo = new JComboBox<>(documentTypes);
-        documentTypeCombo.setFont(new Font("Arial", Font.PLAIN, 12));
-        documentTypeCombo.setPreferredSize(new Dimension(250, 30));
+        for (int i = 0; i < documentTypes.length; i++) {
+            final int index = i;
+            final String docType = documentTypes[i];
 
-        // Add action listener to update form when document type changes
-        documentTypeCombo.addActionListener(e -> {
-            String selectedType = (String) documentTypeCombo.getSelectedItem();
-            updateInputForm(selectedType);
-        });
+            JPanel docCard = new JPanel() {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    Graphics2D g2d = (Graphics2D) g.create();
+                    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 0.3;
-        panel.add(selectLabel, gbc);
+                    // Use modulo to cycle through colors
+                    Color cardColor = documentColors[index % documentColors.length];
+                    g2d.setColor(cardColor);
+                    g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
 
-        gbc.gridx = 1; gbc.gridy = 0; gbc.weightx = 0.7;
-        panel.add(documentTypeCombo, gbc);
+                    // Add highlight effect
+                    g2d.setColor(new Color(255, 255, 255, 50));
+                    g2d.fillRoundRect(0, 0, getWidth(), getHeight()/2, 15, 15);
 
-        return panel;
+                    g2d.dispose();
+                    super.paintComponent(g);
+                }
+            };
+
+            docCard.setLayout(new BorderLayout());
+            docCard.setOpaque(false);
+            docCard.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+            // Make it clickable
+            docCard.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    onDocumentTypeSelected(docType);
+                }
+
+                @Override
+                public void mouseEntered(MouseEvent e) {
+                    docCard.setBorder(BorderFactory.createLineBorder(Color.WHITE, 2));
+                    docCard.repaint();
+                }
+
+                @Override
+                public void mouseExited(MouseEvent e) {
+                    docCard.setBorder(null);
+                    docCard.repaint();
+                }
+            });
+
+            JLabel docLabel = new JLabel(docType, SwingConstants.CENTER);
+            docLabel.setFont(new Font("Arial", Font.BOLD, 12));
+            docLabel.setForeground(Color.WHITE);
+            docLabel.setBorder(BorderFactory.createEmptyBorder(10, 5, 10, 5));
+
+            // For longer text, use HTML to wrap text
+            if (docType.length() > 15) {
+                docLabel.setText("<html><center>" + docType + "</center></html>");
+            }
+
+            docCard.add(docLabel, BorderLayout.CENTER);
+            documentTypePanel.add(docCard);
+        }
+
+        // Fill remaining slots with empty panels
+        int totalSlots = 20; // 4 rows × 5 columns
+        for (int i = documentTypes.length; i < totalSlots; i++) {
+            JPanel emptyPanel = new JPanel();
+            emptyPanel.setOpaque(false);
+            documentTypePanel.add(emptyPanel);
+        }
+
+        return documentTypePanel;
     }
 
-    public JPanel createDynamicInputFormPanel() {
-        JPanel panel = mainFrame.createStyledPanel();
-        panel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(new Color(128, 0, 0), 2),
-                "Document Information",
+    public JPanel createInputFormLayout(){
+        JPanel inputFormLayout = new JPanel(new BorderLayout());
+        inputFormLayout.setOpaque(false);
+        inputFormLayout.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder(new Color(75, 83, 32, 100), 2),
+                "Input Document Information",
                 TitledBorder.LEFT,
                 TitledBorder.TOP,
                 new Font("Arial", Font.BOLD, 14),
-                new Color(128, 0, 0)
+                new Color(75, 83, 32)
         ));
 
-        // Store reference to form container
+        // Create the dynamic container that will hold different forms
         dynamicFormContainer = new JPanel(new BorderLayout());
         dynamicFormContainer.setOpaque(false);
 
+        // Initially show instruction message
         JLabel instructionLabel = new JLabel("Please select a document type to display the form");
         instructionLabel.setFont(new Font("Arial", Font.ITALIC, 12));
         instructionLabel.setForeground(Color.GRAY);
         instructionLabel.setHorizontalAlignment(SwingConstants.CENTER);
-
         dynamicFormContainer.add(instructionLabel, BorderLayout.CENTER);
 
-        // Store reference to scroll pane
-        formScrollPane = new JScrollPane(dynamicFormContainer);
-        formScrollPane.setOpaque(false);
-        formScrollPane.getViewport().setOpaque(false);
-        formScrollPane.setBorder(null);
-        formScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        formScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        // Wrap in JScrollPane with fixed size
+        JScrollPane scrollPane = new JScrollPane(dynamicFormContainer);
+        scrollPane.setOpaque(false);
+        scrollPane.getViewport().setOpaque(false);
+        scrollPane.setPreferredSize(new Dimension(100, 100)); // Adjust these values as needed
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(20);
 
-        panel.setLayout(new BorderLayout());
-        panel.add(formScrollPane, BorderLayout.CENTER);
-
-        return panel;
+        inputFormLayout.add(scrollPane, BorderLayout.CENTER);
+        return inputFormLayout;
     }
 
-    public JPanel createCrudActionsPanel() {
-        JPanel panel = mainFrame.createStyledPanel();
-        panel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(new Color(128, 0, 0), 2),
-                "Quick Actions",
-                TitledBorder.LEFT,
-                TitledBorder.TOP,
-                new Font("Arial", Font.BOLD, 14),
-                new Color(128, 0, 0)
+    public JPanel createCrudLayout(){
+        JPanel crudLayout = new JPanel(new GridLayout(6, 1, 10, 10)); // Changed to 6 rows to include Back button
+        crudLayout.setOpaque(false);
+        crudLayout.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createTitledBorder(
+                        BorderFactory.createLineBorder(new Color(75, 83, 32, 100), 2),
+                        "Quick Action Buttons",
+                        TitledBorder.CENTER,
+                        TitledBorder.TOP,
+                        new Font("Arial", Font.BOLD, 14),
+                        new Color(75, 83, 32)
+                ),
+                BorderFactory.createEmptyBorder(10, 10, 10, 10) // Add padding: top, left, bottom, right
         ));
 
-        panel.setLayout(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(8, 10, 8, 10);
+        // Add action buttons including a Back button
+        String[] buttonLabels = {"Add New Data", "Update Data", "Delete Data", "Clear Form", "Print Document", "Document Types"};
+        for (String label : buttonLabels) {
+            JButton button = new JButton(label) {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    Graphics2D g2d = (Graphics2D) g.create();
+                    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        // Create action buttons
-        JButton addButton = createActionButton("Add New Data", "icons/add.png");
-        JButton updateButton = createActionButton("Update Data", "icons/edit.png");
-        JButton deleteButton = createActionButton("Delete Data", "icons/delete.png");
-        JButton clearButton = createActionButton("Clear Form", "icons/clear.png");
-        JButton printButton = createActionButton("Print Document", "icons/print.png");
+                    // Button background color
+                    g2d.setColor(new Color(75, 83, 32));
+                    g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
 
-        // Add action listeners
-        addButton.addActionListener(e -> handleAddDocument());
-        updateButton.addActionListener(e -> handleUpdateDocument());
-        deleteButton.addActionListener(e -> handleDeleteDocument());
-        clearButton.addActionListener(e -> handleClearForm());
-        printButton.addActionListener(e -> handlePrintDocument());
+                    // Border
+                    g2d.setColor(new Color(0, 0, 0, 150));
+                    g2d.setStroke(new BasicStroke(1));
+                    g2d.drawRoundRect(0, 0, getWidth()-1, getHeight()-1, 10, 10);
 
-        gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 1.0;
-        panel.add(addButton, gbc);
+                    g2d.dispose();
+                    super.paintComponent(g);
+                }
+            };
 
-        gbc.gridy = 1;
-        panel.add(updateButton, gbc);
+            button.setForeground(Color.WHITE);
+            button.setFocusPainted(false);
+            button.setBorderPainted(false);
+            button.setOpaque(false); // Important for custom painting
 
-        gbc.gridy = 2;
-        panel.add(deleteButton, gbc);
-
-        gbc.gridy = 3;
-        panel.add(clearButton, gbc);
-
-        gbc.gridy = 4;
-        panel.add(printButton, gbc);
-
-        return panel;
-    }
-
-    public JButton createActionButton(String text, String iconPath) {
-        JButton button = new JButton(text);
-        button.setFont(new Font("Arial", Font.BOLD, 11));
-        button.setPreferredSize(new Dimension(140, 35));
-        button.setBackground(new Color(128, 0, 0));
-        button.setForeground(Color.BLACK);
-        button.setFocusPainted(false);
-
-        // Add hover effect
-        button.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                button.setBackground(new Color(160, 0, 0));
+            // Add action listener for the Back button
+            if (label.equals("Document Types")) {
+                button.addActionListener(e -> switchToDocumentTypeSelection());
             }
+            // You can add other button actions here
 
-            @Override
-            public void mouseExited(MouseEvent e) {
-                button.setBackground(new Color(128, 0, 0));
-            }
-        });
+            crudLayout.add(button);
+        }
 
-        return button;
+        return crudLayout;
     }
 
-    public JPanel createSearchFilterPanel() {
-        JPanel panel = mainFrame.createStyledPanel();
-        panel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(new Color(128, 0, 0), 2),
-                "Search & Filter",
+    public JPanel createDocumentRecordsLayout(){
+        JPanel documentRecordsLayout = new JPanel(new BorderLayout());
+        documentRecordsLayout.setOpaque(false);
+        documentRecordsLayout.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder(new Color(75, 83, 32, 100), 1),
+                "Recent Document Records",
                 TitledBorder.LEFT,
                 TitledBorder.TOP,
                 new Font("Arial", Font.BOLD, 14),
-                new Color(128, 0, 0)
+                new Color(75, 83, 32)
         ));
 
-        panel.setLayout(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 10, 5, 10);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
+        // Create the dynamic container for records
+        dynamicRecordsContainer = new JPanel(new BorderLayout());
+        dynamicRecordsContainer.setOpaque(false);
 
-        JLabel searchLabel = new JLabel("Search:");
-        searchLabel.setFont(new Font("Arial", Font.BOLD, 12));
+        // Initially show instruction message
+        JLabel instructionLabel = new JLabel("Document records will appear here after selecting a document type");
+        instructionLabel.setFont(new Font("Arial", Font.ITALIC, 12));
+        instructionLabel.setForeground(Color.GRAY);
+        instructionLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        dynamicRecordsContainer.add(instructionLabel, BorderLayout.CENTER);
 
-        JTextField searchField = new JTextField();
-        searchField.setFont(new Font("Arial", Font.PLAIN, 12));
-        searchField.setPreferredSize(new Dimension(200, 25));
-
-        JLabel filterLabel = new JLabel("Filter by Status:");
-        filterLabel.setFont(new Font("Arial", Font.BOLD, 12));
-
-        String[] statusOptions = {"All", "Pending", "Approved", "Released", "Rejected"};
-        JComboBox<String> statusFilter = new JComboBox<>(statusOptions);
-        statusFilter.setFont(new Font("Arial", Font.PLAIN, 12));
-        statusFilter.setPreferredSize(new Dimension(120, 25));
-
-        JButton searchButton = new JButton("Search");
-        searchButton.setFont(new Font("Arial", Font.BOLD, 10));
-        searchButton.setBackground(new Color(128, 0, 0));
-        searchButton.setForeground(Color.BLACK);
-        searchButton.setPreferredSize(new Dimension(80, 25));
-
-        gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 0.3;
-        panel.add(searchLabel, gbc);
-
-        gbc.gridx = 1; gbc.gridy = 0; gbc.weightx = 0.7;
-        panel.add(searchField, gbc);
-
-        gbc.gridx = 0; gbc.gridy = 1; gbc.weightx = 0.3;
-        panel.add(filterLabel, gbc);
-
-        gbc.gridx = 1; gbc.gridy = 1; gbc.weightx = 0.7;
-        panel.add(statusFilter, gbc);
-
-        gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 2; gbc.weightx = 1.0;
-        gbc.anchor = GridBagConstraints.CENTER;
-        panel.add(searchButton, gbc);
-
-        return panel;
+        documentRecordsLayout.add(dynamicRecordsContainer, BorderLayout.CENTER);
+        return documentRecordsLayout;
     }
 
-    public JPanel createDocumentRecordsPanel() {
-        JPanel panel = mainFrame.createStyledPanel();
-        panel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(new Color(128, 0, 0), 2),
-                "Document Records",
-                TitledBorder.LEFT,
-                TitledBorder.TOP,
-                new Font("Arial", Font.BOLD, 14),
-                new Color(128, 0, 0)
-        ));
+    // ==================== PUBLIC ACCESS METHODS ====================
 
-        // Create table with sample columns (will be dynamic based on document type)
-        String[] columnNames = {
-                "ID", "Document Type", "Applicant Name", "Date Applied",
-                "Status", "Date Processed", "Processed By"
-        };
-
-        Object[][] sampleData = {
-                {"001", "Certificate of Indigency", "Juan Dela Cruz", "2024-01-15", "Approved", "2024-01-16", "Admin"},
-                {"002", "Barangay Clearance", "Maria Santos", "2024-01-14", "Pending", "-", "-"},
-                {"003", "Certificate of Residency", "Pedro Garcia", "2024-01-13", "Released", "2024-01-15", "Admin"}
-        };
-
-        JTable documentsTable = new JTable(sampleData, columnNames);
-        documentsTable.setFont(new Font("Arial", Font.PLAIN, 11));
-        documentsTable.setRowHeight(25);
-        documentsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        documentsTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
-
-        // Customize table header
-        JTableHeader header = documentsTable.getTableHeader();
-        header.setFont(new Font("Arial", Font.BOLD, 12));
-        header.setBackground(new Color(128, 0, 0));
-        header.setForeground(Color.BLACK);
-
-        JScrollPane tableScrollPane = new JScrollPane(documentsTable);
-        tableScrollPane.setPreferredSize(new Dimension(800, 200));
-
-        panel.setLayout(new BorderLayout());
-        panel.add(tableScrollPane, BorderLayout.CENTER);
-
-        return panel;
+    //Method to get the main card panel (call this from your main UI)
+    public JPanel getCardPanel() {
+        return cardPanel;
     }
 
-    private JPanel createCommonFields() {
-        JPanel panel = new JPanel(new GridBagLayout());
-        panel.setOpaque(false);
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.anchor = GridBagConstraints.WEST;
+    // ==================== NAVIGATION METHODS ====================
 
-        // Full Name
-        gbc.gridx = 0; gbc.gridy = 0;
-        panel.add(new JLabel("Full Name:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
-        JTextField fullNameField = new JTextField(20);
-        panel.add(fullNameField, gbc);
-
-        // Address
-        gbc.gridx = 0; gbc.gridy = 1; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        panel.add(new JLabel("Address:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
-        JTextField addressField = new JTextField(20);
-        panel.add(addressField, gbc);
-
-        // Contact Number
-        gbc.gridx = 0; gbc.gridy = 2; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        panel.add(new JLabel("Contact Number:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
-        JTextField contactField = new JTextField(20);
-        panel.add(contactField, gbc);
-
-        return panel;
+    //Method to switch to form panel
+    private void switchToFormPanel() {
+        // Simply switch to the existing form panel
+        // The dynamic content will be updated by updateInputForm() and updateDocumentRecords()
+        cardLayout.show(cardPanel, FORM_CARD);
     }
 
-    private JPanel createCertificateOfIndigencyForm() {
-        JPanel formPanel = new JPanel(new GridBagLayout());
-        formPanel.setOpaque(false);
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.anchor = GridBagConstraints.WEST;
-
-        // Add common fields
-        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.HORIZONTAL;
-        formPanel.add(createCommonFields(), gbc);
-
-        // Specific fields for Indigency Certificate
-        gbc.gridwidth = 1; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-
-        // Age
-        gbc.gridx = 0; gbc.gridy = 1;
-        formPanel.add(new JLabel("Age:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
-        JTextField ageField = new JTextField(20);
-        formPanel.add(ageField, gbc);
-
-        // Civil Status
-        gbc.gridx = 0; gbc.gridy = 2; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Civil Status:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
-        String[] civilStatus = {"Single", "Married", "Widowed", "Divorced", "Separated"};
-        JComboBox<String> civilStatusCombo = new JComboBox<>(civilStatus);
-        formPanel.add(civilStatusCombo, gbc);
-
-        // Monthly Income
-        gbc.gridx = 0; gbc.gridy = 3; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Monthly Income:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
-        JTextField incomeField = new JTextField(20);
-        formPanel.add(incomeField, gbc);
-
-        // Purpose
-        gbc.gridx = 0; gbc.gridy = 4; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Purpose:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.BOTH; gbc.weightx = 1.0; gbc.weighty = 1.0;
-        JTextArea purposeArea = new JTextArea(3, 20);
-        purposeArea.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-        JScrollPane purposeScroll = new JScrollPane(purposeArea);
-        formPanel.add(purposeScroll, gbc);
-
-        return formPanel;
+    //Method to switch back to document type selection
+    public void switchToDocumentTypeSelection() {
+        cardLayout.show(cardPanel, DOCUMENT_TYPE_CARD);
     }
 
-    private JPanel createBarangayCertificateForBusinessForm() {
-        JPanel formPanel = new JPanel(new GridBagLayout());
-        formPanel.setOpaque(false);
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.anchor = GridBagConstraints.WEST;
+    // ==================== EVENT HANDLERS ====================
 
-        // Add common fields
-        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.HORIZONTAL;
-        formPanel.add(createCommonFields(), gbc);
+    //Method to handle document type selection
+    private void onDocumentTypeSelected(String documentType) {
+        this.selectedDocumentType = documentType;
+        System.out.println("Selected document type: " + documentType);
 
-        gbc.gridwidth = 1; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        // Remove existing form panel if it exists
+        try {
+            cardPanel.remove(cardPanel.getComponent(1)); // Remove the form panel
+        } catch (Exception e) {
+            // Form panel doesn't exist yet, which is fine
+        }
 
-        // Business Name
-        gbc.gridx = 0; gbc.gridy = 1;
-        formPanel.add(new JLabel("Business Name:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
-        JTextField businessNameField = new JTextField(20);
-        formPanel.add(businessNameField, gbc);
+        // Create new form panel with updated document type
+        JPanel formPanel = createFormLayout();
+        cardPanel.add(formPanel, FORM_CARD);
 
-        // Business Type
-        gbc.gridx = 0; gbc.gridy = 2; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Business Type:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
-        String[] businessTypes = {"Retail", "Service", "Manufacturing", "Food", "Other"};
-        JComboBox<String> businessTypeCombo = new JComboBox<>(businessTypes);
-        formPanel.add(businessTypeCombo, gbc);
+        // Update form content
+        updateInputForm(documentType);
+        updateDocumentRecords(documentType);
 
-        // Business Address
-        gbc.gridx = 0; gbc.gridy = 3; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Business Address:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
-        JTextField businessAddressField = new JTextField(20);
-        formPanel.add(businessAddressField, gbc);
-
-        // Nature of Business
-        gbc.gridx = 0; gbc.gridy = 4; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Nature of Business:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.BOTH; gbc.weightx = 1.0; gbc.weighty = 1.0;
-        JTextArea natureArea = new JTextArea(3, 20);
-        natureArea.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-        JScrollPane natureScroll = new JScrollPane(natureArea);
-        formPanel.add(natureScroll, gbc);
-
-        return formPanel;
+        // Switch to the form layout panel using CardLayout
+        switchToFormPanel();
     }
 
-    private JPanel createCertificateOfResidencyForm() {
-        JPanel formPanel = new JPanel(new GridBagLayout());
-        formPanel.setOpaque(false);
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.anchor = GridBagConstraints.WEST;
+    // ==================== DYNAMIC CONTENT UPDATE METHODS ====================
 
-        // Add common fields
-        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.HORIZONTAL;
-        formPanel.add(createCommonFields(), gbc);
-
-        gbc.gridwidth = 1; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-
-        // Years of Residency
-        gbc.gridx = 0; gbc.gridy = 1;
-        formPanel.add(new JLabel("Years of Residency:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
-        JTextField yearsField = new JTextField(20);
-        formPanel.add(yearsField, gbc);
-
-        // Date of Birth
-        gbc.gridx = 0; gbc.gridy = 2; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Date of Birth:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
-        JTextField dobField = new JTextField(20);
-        dobField.setToolTipText("MM/DD/YYYY");
-        formPanel.add(dobField, gbc);
-
-        // Place of Birth
-        gbc.gridx = 0; gbc.gridy = 3; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Place of Birth:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
-        JTextField pobField = new JTextField(20);
-        formPanel.add(pobField, gbc);
-
-        // Purpose
-        gbc.gridx = 0; gbc.gridy = 4; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Purpose:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.BOTH; gbc.weightx = 1.0; gbc.weighty = 1.0;
-        JTextArea purposeArea = new JTextArea(3, 20);
-        purposeArea.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-        JScrollPane purposeScroll = new JScrollPane(purposeArea);
-        formPanel.add(purposeScroll, gbc);
-
-        return formPanel;
-    }
-
-    private JPanel createBarangayIDForm() {
-        JPanel formPanel = new JPanel(new GridBagLayout());
-        formPanel.setOpaque(false);
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.anchor = GridBagConstraints.WEST;
-
-        // Add common fields
-        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.HORIZONTAL;
-        formPanel.add(createCommonFields(), gbc);
-
-        gbc.gridwidth = 1; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-
-        // Date of Birth
-        gbc.gridx = 0; gbc.gridy = 1;
-        formPanel.add(new JLabel("Date of Birth:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
-        JTextField dobField = new JTextField(20);
-        dobField.setToolTipText("MM/DD/YYYY");
-        formPanel.add(dobField, gbc);
-
-        // Emergency Contact
-        gbc.gridx = 0; gbc.gridy = 2; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Emergency Contact:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
-        JTextField emergencyContactField = new JTextField(20);
-        formPanel.add(emergencyContactField, gbc);
-
-        // Emergency Contact Number
-        gbc.gridx = 0; gbc.gridy = 3; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Emergency Contact Number:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
-        JTextField emergencyNumberField = new JTextField(20);
-        formPanel.add(emergencyNumberField, gbc);
-
-        // Photo Upload Button
-        gbc.gridx = 0; gbc.gridy = 4; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Photo:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
-        JButton photoButton = new JButton("Upload Photo");
-        photoButton.setBackground(new Color(128, 0, 0));
-        photoButton.setForeground(Color.WHITE);
-        formPanel.add(photoButton, gbc);
-
-        return formPanel;
-    }
-
-    private JPanel createCertificateOfSoloParentForm() {
-        JPanel formPanel = new JPanel(new GridBagLayout());
-        formPanel.setOpaque(false);
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.anchor = GridBagConstraints.WEST;
-
-        // Add common fields
-        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.HORIZONTAL;
-        formPanel.add(createCommonFields(), gbc);
-
-        gbc.gridwidth = 1; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-
-        // Date of Birth
-        gbc.gridx = 0; gbc.gridy = 1;
-        formPanel.add(new JLabel("Date of Birth:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
-        JTextField dobField = new JTextField(20);
-        dobField.setToolTipText("MM/DD/YYYY");
-        formPanel.add(dobField, gbc);
-
-        // Number of Children
-        gbc.gridx = 0; gbc.gridy = 2; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Number of Children:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
-        JTextField childrenField = new JTextField(20);
-        formPanel.add(childrenField, gbc);
-
-        // Monthly Income
-        gbc.gridx = 0; gbc.gridy = 3; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Monthly Income:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
-        JTextField incomeField = new JTextField(20);
-        formPanel.add(incomeField, gbc);
-
-        // Employment Status
-        gbc.gridx = 0; gbc.gridy = 4; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Employment Status:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
-        String[] employmentStatus = {"Employed", "Unemployed", "Self-Employed", "Part-time"};
-        JComboBox<String> employmentCombo = new JComboBox<>(employmentStatus);
-        formPanel.add(employmentCombo, gbc);
-
-        // Reason for Solo Parent Status
-        gbc.gridx = 0; gbc.gridy = 5; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Reason for Solo Parent Status:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
-        String[] reasons = {"Death of Spouse", "Abandonment", "Separation", "Single Mother", "Other"};
-        JComboBox<String> reasonCombo = new JComboBox<>(reasons);
-        formPanel.add(reasonCombo, gbc);
-
-        // Additional Details
-        gbc.gridx = 0; gbc.gridy = 6; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Additional Details:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.BOTH; gbc.weightx = 1.0; gbc.weighty = 1.0;
-        JTextArea detailsArea = new JTextArea(3, 20);
-        detailsArea.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-        JScrollPane detailsScroll = new JScrollPane(detailsArea);
-        formPanel.add(detailsScroll, gbc);
-
-        return formPanel;
-    }
-
-    private JPanel createIndividualClearanceForm() {
-        JPanel formPanel = new JPanel(new GridBagLayout());
-        formPanel.setOpaque(false);
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.anchor = GridBagConstraints.WEST;
-
-        // Add common fields
-        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.HORIZONTAL;
-        formPanel.add(createCommonFields(), gbc);
-
-        gbc.gridwidth = 1; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-
-        // Date of Birth
-        gbc.gridx = 0; gbc.gridy = 1;
-        formPanel.add(new JLabel("Date of Birth:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
-        JTextField dobField = new JTextField(20);
-        dobField.setToolTipText("MM/DD/YYYY");
-        formPanel.add(dobField, gbc);
-
-        // Place of Birth
-        gbc.gridx = 0; gbc.gridy = 2; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Place of Birth:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
-        JTextField pobField = new JTextField(20);
-        formPanel.add(pobField, gbc);
-
-        // Civil Status
-        gbc.gridx = 0; gbc.gridy = 3; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Civil Status:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
-        String[] civilStatus = {"Single", "Married", "Widowed", "Divorced", "Separated"};
-        JComboBox<String> civilStatusCombo = new JComboBox<>(civilStatus);
-        formPanel.add(civilStatusCombo, gbc);
-
-        // Years of Residency
-        gbc.gridx = 0; gbc.gridy = 4; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Years of Residency:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
-        JTextField yearsField = new JTextField(20);
-        formPanel.add(yearsField, gbc);
-
-        // Clearance Type
-        gbc.gridx = 0; gbc.gridy = 5; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Clearance Type:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
-        String[] clearanceTypes = {"Employment", "Travel", "Loan Application", "School Requirement", "Other"};
-        JComboBox<String> clearanceTypeCombo = new JComboBox<>(clearanceTypes);
-        formPanel.add(clearanceTypeCombo, gbc);
-
-        // Purpose
-        gbc.gridx = 0; gbc.gridy = 6; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Purpose:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.BOTH; gbc.weightx = 1.0; gbc.weighty = 1.0;
-        JTextArea purposeArea = new JTextArea(3, 20);
-        purposeArea.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-        JScrollPane purposeScroll = new JScrollPane(purposeArea);
-        formPanel.add(purposeScroll, gbc);
-
-        return formPanel;
-    }
-
-    private JPanel createBusinessClearanceForm() {
-        JPanel formPanel = new JPanel(new GridBagLayout());
-        formPanel.setOpaque(false);
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.anchor = GridBagConstraints.WEST;
-
-        // Add common fields (Owner information)
-        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.HORIZONTAL;
-        JPanel ownerPanel = createCommonFields();
-        ownerPanel.setBorder(BorderFactory.createTitledBorder("Owner Information"));
-        formPanel.add(ownerPanel, gbc);
-
-        gbc.gridwidth = 1; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-
-        // Business Name
-        gbc.gridx = 0; gbc.gridy = 1;
-        formPanel.add(new JLabel("Business Name:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
-        JTextField businessNameField = new JTextField(20);
-        formPanel.add(businessNameField, gbc);
-
-        // Business Address
-        gbc.gridx = 0; gbc.gridy = 2; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Business Address:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
-        JTextField businessAddressField = new JTextField(20);
-        formPanel.add(businessAddressField, gbc);
-
-        // Business Type
-        gbc.gridx = 0; gbc.gridy = 3; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Business Type:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
-        String[] businessTypes = {"Retail", "Service", "Manufacturing", "Food & Beverage", "Healthcare", "Technology", "Other"};
-        JComboBox<String> businessTypeCombo = new JComboBox<>(businessTypes);
-        formPanel.add(businessTypeCombo, gbc);
-
-        // Date Established
-        gbc.gridx = 0; gbc.gridy = 4; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Date Established:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
-        JTextField dateEstablishedField = new JTextField(20);
-        dateEstablishedField.setToolTipText("MM/DD/YYYY");
-        formPanel.add(dateEstablishedField, gbc);
-
-        // Number of Employees
-        gbc.gridx = 0; gbc.gridy = 5; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Number of Employees:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
-        JTextField employeesField = new JTextField(20);
-        formPanel.add(employeesField, gbc);
-
-        // Nature of Business
-        gbc.gridx = 0; gbc.gridy = 6; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Nature of Business:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.BOTH; gbc.weightx = 1.0; gbc.weighty = 1.0;
-        JTextArea natureArea = new JTextArea(3, 20);
-        natureArea.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-        JScrollPane natureScroll = new JScrollPane(natureArea);
-        formPanel.add(natureScroll, gbc);
-
-        return formPanel;
-    }
-
-    private JPanel createBusinessPermitForm() {
-        JPanel formPanel = new JPanel(new GridBagLayout());
-        formPanel.setOpaque(false);
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.anchor = GridBagConstraints.WEST;
-
-        // Owner Information
-        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.HORIZONTAL;
-        JPanel ownerPanel = createCommonFields();
-        ownerPanel.setBorder(BorderFactory.createTitledBorder("Business Owner Information"));
-        formPanel.add(ownerPanel, gbc);
-
-        gbc.gridwidth = 1; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-
-        // Business Registration Number
-        gbc.gridx = 0; gbc.gridy = 1;
-        formPanel.add(new JLabel("DTI/SEC Registration No:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
-        JTextField registrationField = new JTextField(20);
-        formPanel.add(registrationField, gbc);
-
-        // Business Name
-        gbc.gridx = 0; gbc.gridy = 2; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Business Name:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
-        JTextField businessNameField = new JTextField(20);
-        formPanel.add(businessNameField, gbc);
-
-        // Business Address
-        gbc.gridx = 0; gbc.gridy = 3; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Business Address:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
-        JTextField businessAddressField = new JTextField(20);
-        formPanel.add(businessAddressField, gbc);
-
-        // Business Category
-        gbc.gridx = 0; gbc.gridy = 4; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Business Category:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
-        String[] categories = {"Micro", "Small", "Medium", "Large"};
-        JComboBox<String> categoryCombo = new JComboBox<>(categories);
-        formPanel.add(categoryCombo, gbc);
-
-        // Capital Investment
-        gbc.gridx = 0; gbc.gridy = 5; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Capital Investment:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
-        JTextField capitalField = new JTextField(20);
-        formPanel.add(capitalField, gbc);
-
-        // Number of Employees
-        gbc.gridx = 0; gbc.gridy = 6; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Number of Employees:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
-        JTextField employeesField = new JTextField(20);
-        formPanel.add(employeesField, gbc);
-
-        // Gross Sales/Receipts
-        gbc.gridx = 0; gbc.gridy = 7; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Expected Gross Sales/Receipts:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
-        JTextField grossSalesField = new JTextField(20);
-        formPanel.add(grossSalesField, gbc);
-
-        // Business Activities
-        gbc.gridx = 0; gbc.gridy = 8; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Business Activities:"), gbc);
-        gbc.gridx = 1; gbc.fill = GridBagConstraints.BOTH; gbc.weightx = 1.0; gbc.weighty = 1.0;
-        JTextArea activitiesArea = new JTextArea(3, 20);
-        activitiesArea.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-        JScrollPane activitiesScroll = new JScrollPane(activitiesArea);
-        formPanel.add(activitiesScroll, gbc);
-
-        return formPanel;
-    }
-
+    //Add your dynamic form updating method:
     private void updateInputForm(String documentType) {
         // Clear existing content
         dynamicFormContainer.removeAll();
 
         // Add new form based on document type
         switch (documentType) {
-            case "Certificate of Indigency":
-                dynamicFormContainer.add(createCertificateOfIndigencyForm(), BorderLayout.CENTER);
+            case "Bail Certificate":
+                dynamicFormContainer.add(DocumentFactory.createBailCertificateForm(), BorderLayout.CENTER);
                 break;
-            case "Barangay Certificate for Business":
-                dynamicFormContainer.add(createBarangayCertificateForBusinessForm(), BorderLayout.CENTER);
+            case "Barangay Clearance":
+                dynamicFormContainer.add(DocumentFactory.createBarangayClearanceForm(), BorderLayout.CENTER);
+                break;
+            case "Business Permit (New Application)":
+                dynamicFormContainer.add(DocumentFactory.createNewBusinessPermitForm(), BorderLayout.NORTH);
+                break;
+            case "Business Permit (Renewal)":
+                dynamicFormContainer.add(DocumentFactory.createRenewalBusinessPermitForm(), BorderLayout.NORTH);
+                break;
+            case "Certificate for Business Closure":
+                dynamicFormContainer.add(DocumentFactory.createBusinessClosureForm(), BorderLayout.NORTH);
+                break;
+            case "Certificate for Calamity (Disaster)":
+                dynamicFormContainer.add(DocumentFactory.createCalamityForm(), BorderLayout.CENTER);
+                break;
+            case "Certificate for No Objection (for Building Construction)":
+                dynamicFormContainer.add(DocumentFactory.createNoObjectionForm(), BorderLayout.CENTER);
+                break;
+            case "Certificate for PWD's":
+                // Will be implemented in next batch
+                break;
+            case "Certificate for Senior Citizens":
+                // Will be implemented in next batch
+                break;
+            case "Certificate for Solo Parent":
+                dynamicFormContainer.add(DocumentFactory.createSoloParentForm(), BorderLayout.NORTH);
+                break;
+            case "Certificate of Good Moral Character":
+                // Will be implemented in next batch
+                break;
+            case "Certificate of Indigency":
+                dynamicFormContainer.add(DocumentFactory.createBusinessClearanceForm(), BorderLayout.CENTER);
                 break;
             case "Certificate of Residency":
-                dynamicFormContainer.add(createCertificateOfResidencyForm(), BorderLayout.CENTER);
+                // Will be implemented in next batch
                 break;
-            case "Certificate of Solo Parent":
-                dynamicFormContainer.add(createCertificateOfSoloParentForm(), BorderLayout.CENTER);
+            case "Community Tax Certificate (Cedula)":
+                // Will be implemented in next batch
                 break;
-            case "Barangay ID":
-                dynamicFormContainer.add(createBarangayIDForm(), BorderLayout.CENTER);
+            case "First Time Job Seeker":
+                dynamicFormContainer.add(DocumentFactory.createFirstTimeJobSeekerForm(), BorderLayout.NORTH);
                 break;
-            case "Individual Barangay Clearance":
-                dynamicFormContainer.add(createIndividualClearanceForm(), BorderLayout.CENTER);
+            case "Late Registration":
+                // Will be implemented in next batch
                 break;
-            case "Business Barangay Clearance":
-                dynamicFormContainer.add(createBusinessClearanceForm(), BorderLayout.CENTER);
+            case "Low Income Certificate":
+                // Will be implemented in next batch
                 break;
-            case "Business Permit":
-                dynamicFormContainer.add(createBusinessPermitForm(), BorderLayout.CENTER);
+            case "No Income Certificate":
+                // Will be implemented in next batch
+                break;
+            case "State Tax Certificate":
+                // Will be implemented in next batch
                 break;
             default:
                 JLabel instructionLabel = new JLabel("Please select a document type to display the form");
@@ -806,29 +470,48 @@ public class BarangayDocumentContent {
         dynamicFormContainer.repaint();
     }
 
-    // CRUD Action Handlers (placeholder methods)
-    private void handleAddDocument() {
-        System.out.println("Add document action triggered");
-        // Implementation will connect to database
-    }
+    //Add similar method for document records:
+    private void updateDocumentRecords(String documentType) {
+        // Clear existing content
+        dynamicRecordsContainer.removeAll();
 
-    private void handleUpdateDocument() {
-        System.out.println("Update document action triggered");
-        // Implementation will connect to database
-    }
+        // Create document-specific records panel
+        switch (documentType) {
+            case "Certificate of Indigency":
+                //dynamicRecordsContainer.add(createIndigencyRecordsPanel(), BorderLayout.CENTER);
+                break;
+            case "Barangay Certificate for Business":
+                //dynamicRecordsContainer.add(createBusinessCertificateRecordsPanel(), BorderLayout.CENTER);
+                break;
+            case "Certificate of Residency":
+                //dynamicRecordsContainer.add(createResidencyRecordsPanel(), BorderLayout.CENTER);
+                break;
+            case "Certificate of Solo Parent":
+                //dynamicRecordsContainer.add(createSoloParentRecordsPanel(), BorderLayout.CENTER);
+                break;
+            case "Barangay ID":
+                //dynamicRecordsContainer.add(createBarangayIDRecordsPanel(), BorderLayout.CENTER);
+                break;
+            case "Individual Barangay Clearance":
+                //dynamicRecordsContainer.add(createIndividualClearanceRecordsPanel(), BorderLayout.CENTER);
+                break;
+            case "Business Barangay Clearance":
+                //dynamicRecordsContainer.add(createBusinessClearanceRecordsPanel(), BorderLayout.CENTER);
+                break;
+            case "Business Permit":
+                //dynamicRecordsContainer.add(createBusinessPermitRecordsPanel(), BorderLayout.CENTER);
+                break;
+            default:
+                JLabel instructionLabel = new JLabel("Document records will appear here after selecting a document type");
+                instructionLabel.setFont(new Font("Arial", Font.ITALIC, 12));
+                instructionLabel.setForeground(Color.GRAY);
+                instructionLabel.setHorizontalAlignment(SwingConstants.CENTER);
+                dynamicRecordsContainer.add(instructionLabel, BorderLayout.CENTER);
+                break;
+        }
 
-    private void handleDeleteDocument() {
-        System.out.println("Delete document action triggered");
-        // Implementation will connect to database
-    }
-
-    private void handleClearForm() {
-        System.out.println("Clear form action triggered");
-        // Clear all input fields
-    }
-
-    private void handlePrintDocument() {
-        System.out.println("Print document action triggered");
-        // Generate and print document
+        // Refresh the display
+        dynamicRecordsContainer.revalidate();
+        dynamicRecordsContainer.repaint();
     }
 }

@@ -24,7 +24,8 @@ public class Main extends JFrame {
         // Configure main application window
         setTitle(ApplicationConstants.WINDOW_TITLE);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(ApplicationConstants.WINDOW_WIDTH, ApplicationConstants.WINDOW_HEIGHT);
+        setExtendedState(JFrame.MAXIMIZED_BOTH); // Maximize to full screen
+        setUndecorated(false); // Optional: Set to true if you want to remove the title bar (true = borderless)
         setLocationRelativeTo(null); // Center window on screen
 
         // Build UI components and layout
@@ -85,7 +86,7 @@ public class Main extends JFrame {
 
         // Create the split pane with 30/70 ratio for foreground content
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-        splitPane.setResizeWeight(0.3);
+        splitPane.setResizeWeight(0.25);
         splitPane.setDividerSize(0);
         splitPane.setContinuousLayout(true);
         splitPane.setOpaque(false); // Make split pane transparent
@@ -112,7 +113,7 @@ public class Main extends JFrame {
         // Set the divider location after the window is visible
         SwingUtilities.invokeLater(() -> {
             int windowWidth = getWidth();
-            int dividerLocation = (int) (windowWidth * 0.3);
+            int dividerLocation = (int) (windowWidth * 0.25);
             splitPane.setDividerLocation(dividerLocation);
         });
     }
@@ -120,11 +121,6 @@ public class Main extends JFrame {
     public JPanel createStyledPanel() {
         // Delegate to StyledPanel component
         return StyledPanel.create();
-    }
-
-    public JLabel createDateTimeLabel() {
-        // Delegate to ComponentFactory
-        return ComponentFactory.createDateTimeLabel();
     }
 
     public void handleMenuSelection(String menuItem) {

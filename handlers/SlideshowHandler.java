@@ -24,9 +24,9 @@ public class SlideshowHandler {
         }
 
         imagePaths = new ArrayList<>();
-        imagePaths.add("OOPProject/src/handlers/Images/pic1.jpg");
-        imagePaths.add("OOPProject/src/handlers/Images/pic2.jpg");
-        imagePaths.add("OOPProject/src/handlers/Images/pic3.jpg");
+        imagePaths.add("handlers/Images/pic1.jpg");
+        imagePaths.add("handlers/Images/pic2.jpg");
+        imagePaths.add("handlers/Images/pic3.jpg");
 
         currentImageIndex = 0;
 

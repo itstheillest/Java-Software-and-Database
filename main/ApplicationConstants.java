@@ -24,9 +24,9 @@ public class ApplicationConstants {
     // Slideshow Configuration
     public static final int SLIDESHOW_DELAY = 3000; // 3 seconds
     public static final String[] IMAGE_PATHS = {
-            "Images/pic1.jpg",
-            "Images/pic2.jpg",
-            "Images/pic3.jpg"
+            "handlers/Images/pic1.jpg",
+            "handlers/Images/pic2.jpg",
+            "handlers/Images/pic3.jpg"
     };
 
     // Menu Items
@@ -41,15 +41,25 @@ public class ApplicationConstants {
 
     // Document Types
     public static final String[] DOCUMENT_TYPES = {
-            "Select Document Type",
+            "Bail Certificate",
+            "Barangay Clearance",
+            "Business Permit (New Application)",
+            "Business Permit (Renewal)",
+            "Certificate for Business Closure",
+            "Certificate for Calamity (Disaster)",
+            "Certificate for No Objection (for Building Construction)",
+            "Certificate for PWD's",
+            "Certificate for Senior Citizens",
+            "Certificate for Solo Parent",
+            "Certificate of Good Moral Character",
             "Certificate of Indigency",
-            "Barangay Certificate for Business",
             "Certificate of Residency",
-            "Certificate of Solo Parent",
-            "Barangay ID",
-            "Individual Barangay Clearance",
-            "Business Barangay Clearance",
-            "Business Permit"
+            "Community Tax Certificate (Cedula)",
+            "First Time Job Seeker",
+            "Late Registration",
+            "Low Income Certificate",
+            "No Income Certificate",
+            "State Tax Certificate"
     };
 
     // Status Options
