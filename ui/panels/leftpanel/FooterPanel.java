@@ -41,7 +41,7 @@ public class FooterPanel {
     }
 
     private void setupAdminButtonProperties(JButton adminButton) {
-        adminButton.setFont(new Font("Arial", Font.ITALIC, 10));
+        adminButton.setFont(new Font("Arial", Font.ITALIC, 18));
         adminButton.setForeground(new Color(255, 255, 255, 200));
         adminButton.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
         adminButton.setFocusPainted(false);
