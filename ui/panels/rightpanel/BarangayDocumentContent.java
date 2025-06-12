@@ -436,25 +436,25 @@ public class BarangayDocumentContent {
                 dynamicFormContainer.add(DocumentFactory.createBusinessClearanceForm(), BorderLayout.CENTER);
                 break;
             case "Certificate of Residency":
-                // Will be implemented in next batch
+                dynamicFormContainer.add(DocumentFactory.createsCommunityTaxCertificateForm(), BorderLayout.NORTH);
                 break;
             case "Community Tax Certificate (Cedula)":
-                // Will be implemented in next batch
+                dynamicFormContainer.add(DocumentFactory.createCommunityTaxCertificateForm(), BorderLayout.NORTH);
                 break;
             case "First Time Job Seeker":
                 dynamicFormContainer.add(DocumentFactory.createFirstTimeJobSeekerForm(), BorderLayout.NORTH);
                 break;
             case "Late Registration":
-                // Will be implemented in next batch
+                dynamicFormContainer.add(DocumentFactory.createLateRegistrationForm(), BorderLayout.NORTH);
                 break;
             case "Low Income Certificate":
-                // Will be implemented in next batch
+                dynamicFormContainer.add(DocumentFactory.createLowIncomeCertificateForm(), BorderLayout.NORTH);
                 break;
             case "No Income Certificate":
-                // Will be implemented in next batch
+                dynamicFormContainer.add(DocumentFactory.createNoIncomeCertificateForm(), BorderLayout.NORTH);
                 break;
             case "State Tax Certificate":
-                // Will be implemented in next batch
+                dynamicFormContainer.add(DocumentFactory.createStateTaxCertificateForm(), BorderLayout.NORTH);
                 break;
             default:
                 JLabel instructionLabel = new JLabel("Please select a document type to display the form");
