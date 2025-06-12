@@ -1,8 +1,11 @@
 package utils;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.text.JTextComponent;
 import java.awt.*;
+import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.time.LocalDate;
@@ -179,6 +182,76 @@ public class ComponentFactory {
             ageField.setText("");
         }
     }
+
+    public static void addAgeCalculationListener(JComboBox<String> dobYearCombo, JComboBox<String> dobMonthCombo,
+                                           JComboBox<String> dobDayCombo, JTextField ageField) {
+        ActionListener ageCalculationListener = e -> {
+            try {
+                String selectedYear = (String) dobYearCombo.getSelectedItem();
+                String selectedMonth = (String) dobMonthCombo.getSelectedItem();
+                String selectedDay = (String) dobDayCombo.getSelectedItem();
+
+                if (selectedYear != null && selectedMonth != null && selectedDay != null &&
+                        !selectedYear.equals("Year") && !selectedMonth.equals("Month") && !selectedDay.equals("Day")) {
+
+                    int year = Integer.parseInt(selectedYear);
+                    int month = Integer.parseInt(selectedMonth);
+                    int day = Integer.parseInt(selectedDay);
+
+                    Calendar today = Calendar.getInstance();
+                    Calendar birthDate = Calendar.getInstance();
+                    birthDate.set(year, month - 1, day); // month is 0-based
+
+                    int age = today.get(Calendar.YEAR) - birthDate.get(Calendar.YEAR);
+                    if (today.get(Calendar.DAY_OF_YEAR) < birthDate.get(Calendar.DAY_OF_YEAR)) {
+                        age--;
+                    }
+
+                    ageField.setText(String.valueOf(age));
+                }
+            } catch (NumberFormatException ex) {
+                ageField.setText("");
+            }
+        };
+
+        dobYearCombo.addActionListener(ageCalculationListener);
+        dobMonthCombo.addActionListener(ageCalculationListener);
+        dobDayCombo.addActionListener(ageCalculationListener);
+    }
+
+    public static void addCommunityTaxCalculationListener(JTextField businessIncomeField, JTextField professionalIncomeField,
+                                                    JTextField propertyIncomeField, JTextField totalAmountField) {
+        DocumentListener calculationListener = new DocumentListener() {
+            public void insertUpdate(DocumentEvent e) { calculateCommunityTax(); }
+            public void removeUpdate(DocumentEvent e) { calculateCommunityTax(); }
+            public void changedUpdate(DocumentEvent e) { calculateCommunityTax(); }
+
+            private void calculateCommunityTax() {
+                try {
+                    String businessText = businessIncomeField.getText().replaceAll("[₱,]", "");
+                    String professionalText = professionalIncomeField.getText().replaceAll("[₱,]", "");
+                    String propertyText = propertyIncomeField.getText().replaceAll("[₱,]", "");
+
+                    double businessIncome = businessText.isEmpty() ? 0 : Double.parseDouble(businessText);
+                    double professionalIncome = professionalText.isEmpty() ? 0 : Double.parseDouble(professionalText);
+                    double propertyIncome = propertyText.isEmpty() ? 0 : Double.parseDouble(propertyText);
+
+                    double totalIncome = businessIncome + professionalIncome + propertyIncome;
+                    double additionalTax = Math.floor(totalIncome / 1000);
+                    double totalTax = 5.00 + additionalTax;
+
+                    totalAmountField.setText(String.format("₱%.2f", totalTax));
+                } catch (NumberFormatException ex) {
+                    totalAmountField.setText("₱5.00");
+                }
+            }
+        };
+
+        businessIncomeField.getDocument().addDocumentListener(calculationListener);
+        professionalIncomeField.getDocument().addDocumentListener(calculationListener);
+        propertyIncomeField.getDocument().addDocumentListener(calculationListener);
+    }
+
 
     public static void setupEducationFieldToggle(JComboBox<String> comboBox, JTextField specifyField, String placeholderText) {
         comboBox.addActionListener(e -> {
