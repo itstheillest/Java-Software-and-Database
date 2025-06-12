@@ -2,11 +2,185 @@ package ui.forms;
 
 import utils.ComponentFactory;
 import javax.swing.*;
+import javax.swing.border.TitledBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
+import javax.swing.JTextField;
+
 
 public class DocumentFactory {
+
+    public static JPanel createDocumentInformationSection() {
+        Font labelFont = new Font("Trebuchet MS", Font.BOLD, 12);
+        Font inputFont = new Font("Trebuchet MS", Font.PLAIN, 12);
+        Font sectionFont = new Font("Trebuchet MS", Font.BOLD, 14);
+
+        JPanel docInfoSection = new JPanel(new GridBagLayout());
+        docInfoSection.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder(Color.BLACK),
+                "Document Information",
+                TitledBorder.LEFT, TitledBorder.TOP, sectionFont
+        ));
+        docInfoSection.setOpaque(false);
+
+        GridBagConstraints docGbc = new GridBagConstraints();
+        docGbc.insets = new Insets(5, 5, 5, 5);
+        docGbc.anchor = GridBagConstraints.WEST;
+
+        // Certification Number
+        docGbc.gridx = 0; docGbc.gridy = 0; docGbc.fill = GridBagConstraints.NONE; docGbc.weightx = 0;
+        JLabel certNumberLabel = new JLabel("Certification Number:");
+        certNumberLabel.setFont(labelFont);
+        docInfoSection.add(certNumberLabel, docGbc);
+
+        docGbc.gridx = 1; docGbc.fill = GridBagConstraints.HORIZONTAL; docGbc.weightx = 1.0;
+        JTextField certNumberField = new JTextField(20);
+        certNumberField.setPreferredSize(new Dimension(0, 25));
+        certNumberField.setFont(inputFont);
+        certNumberField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        certNumberField.setEditable(false);
+        certNumberField.setBackground(UIManager.getColor("TextField.inactiveBackground"));
+        ComponentFactory.addPlaceholder(certNumberField, "Auto-generated upon processing");
+        docInfoSection.add(certNumberField, docGbc);
+
+        // Date Issued
+        docGbc.gridx = 0; docGbc.gridy = 1; docGbc.fill = GridBagConstraints.NONE; docGbc.weightx = 0;
+        JLabel dateIssuedLabel = new JLabel("Date Issued:");
+        dateIssuedLabel.setFont(labelFont);
+        docInfoSection.add(dateIssuedLabel, docGbc);
+
+        docGbc.gridx = 1; docGbc.fill = GridBagConstraints.HORIZONTAL; docGbc.weightx = 1.0;
+        JTextField dateIssuedField = new JTextField(20);
+        dateIssuedField.setPreferredSize(new Dimension(0, 25));
+        dateIssuedField.setFont(inputFont);
+        dateIssuedField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        dateIssuedField.setEditable(false);
+        dateIssuedField.setBackground(UIManager.getColor("TextField.inactiveBackground"));
+        ComponentFactory.addPlaceholder(dateIssuedField, "Auto-generated upon processing");
+        docInfoSection.add(dateIssuedField, docGbc);
+
+        return docInfoSection;
+    }
+
+    public static JPanel createPersonalInformationSection() {
+        Font labelFont = new Font("Trebuchet MS", Font.BOLD, 12);
+        Font inputFont = new Font("Trebuchet MS", Font.PLAIN, 12);
+        Font sectionFont = new Font("Trebuchet MS", Font.BOLD, 14);
+
+        // Personal Information Section Header
+        JPanel personalInfoSection = new JPanel(new GridBagLayout());
+        personalInfoSection.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder(Color.BLACK),
+                "Personal Information",
+                TitledBorder.LEFT, TitledBorder.TOP, sectionFont
+        ));
+        personalInfoSection.setOpaque(false);
+
+        GridBagConstraints personalGbc = new GridBagConstraints();
+        personalGbc.insets = new Insets(5, 5, 5, 5);
+        personalGbc.anchor = GridBagConstraints.WEST;
+
+        // Full Name
+        personalGbc.gridx = 0; personalGbc.gridy = 0; personalGbc.fill = GridBagConstraints.NONE; personalGbc.weightx = 0;
+        JLabel fullNameLabel = new JLabel("Full Name:");
+        fullNameLabel.setFont(labelFont);
+        personalInfoSection.add(fullNameLabel, personalGbc);
+
+        personalGbc.gridx = 1; personalGbc.fill = GridBagConstraints.HORIZONTAL; personalGbc.weightx = 1.0;
+        JTextField fullNameField = new JTextField(20);
+        fullNameField.setPreferredSize(new Dimension(0, 25));
+        fullNameField.setFont(inputFont);
+        fullNameField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        ComponentFactory.addPlaceholder(fullNameField, "Last Name, First Name, Middle Initial");
+        personalInfoSection.add(fullNameField, personalGbc);
+
+        // Date of Birth
+        personalGbc.gridx = 0; personalGbc.gridy = 1; personalGbc.fill = GridBagConstraints.NONE; personalGbc.weightx = 0;
+        JLabel dobLabel = new JLabel("Date of Birth:");
+        dobLabel.setFont(labelFont);
+        personalInfoSection.add(dobLabel, personalGbc);
+
+        JPanel dobPanel = new JPanel();
+        dobPanel.setPreferredSize(new Dimension(0, 25));
+        dobPanel.setFont(inputFont);
+        dobPanel.setLayout(new BoxLayout(dobPanel, BoxLayout.X_AXIS));
+        dobPanel.setOpaque(false);
+
+        JComboBox<String> dobYearCombo = new JComboBox<>();
+        JComboBox<String> dobMonthCombo = new JComboBox<>();
+        JComboBox<String> dobDayCombo = new JComboBox<>();
+
+        dobYearCombo.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        dobMonthCombo.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        dobDayCombo.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+
+        dobPanel.add(new JLabel("Month:"));
+        dobPanel.add(Box.createHorizontalStrut(5));
+        dobPanel.add(dobMonthCombo);
+        dobPanel.add(Box.createHorizontalStrut(10));
+
+        dobPanel.add(new JLabel("Day:"));
+        dobPanel.add(Box.createHorizontalStrut(5));
+        dobPanel.add(dobDayCombo);
+        dobPanel.add(Box.createHorizontalStrut(10));
+
+        dobPanel.add(new JLabel("Year:"));
+        dobPanel.add(Box.createHorizontalStrut(5));
+        dobPanel.add(dobYearCombo);
+        dobPanel.add(Box.createHorizontalStrut(10));
+
+        dobPanel.add(new JLabel("Age:"));
+        dobPanel.add(Box.createHorizontalStrut(5));
+        JTextField ageField = new JTextField(5);
+        ageField.setFont(inputFont);
+        ageField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        ageField.setEditable(false);
+        ageField.setBackground(UIManager.getColor("TextField.inactiveBackground"));
+        ComponentFactory.addPlaceholder(ageField, "Auto-calculated");
+        dobPanel.add(ageField);
+
+        ComponentFactory.setupDateComboBoxes(dobYearCombo, dobMonthCombo, dobDayCombo);
+
+        personalGbc.gridx = 1; personalGbc.fill = GridBagConstraints.HORIZONTAL; personalGbc.weightx = 1.0;
+        personalInfoSection.add(dobPanel, personalGbc);
+
+        ComponentFactory.addAgeCalculationListener(dobYearCombo, dobMonthCombo, dobDayCombo, ageField);
+
+        // Complete Address
+        personalGbc.gridx = 0; personalGbc.gridy = 2; personalGbc.fill = GridBagConstraints.NONE; personalGbc.weightx = 0;
+        JLabel addressLabel = new JLabel("Complete Address:");
+        addressLabel.setFont(labelFont);
+        personalInfoSection.add(addressLabel, personalGbc);
+
+        personalGbc.gridx = 1; personalGbc.fill = GridBagConstraints.HORIZONTAL; personalGbc.weightx = 1.0;
+        JTextField addressField = new JTextField(20);
+        addressField.setPreferredSize(new Dimension(0, 25));
+        addressField.setFont(inputFont);
+        addressField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        ComponentFactory.addPlaceholder(addressField, "House/Building/Blk/Lot No., Street, Barangay, City/Municipality, Province");
+        personalInfoSection.add(addressField, personalGbc);
+
+        // Contact Number
+        personalGbc.gridx = 0; personalGbc.gridy = 3; personalGbc.fill = GridBagConstraints.NONE; personalGbc.weightx = 0;
+        JLabel contactLabel = new JLabel("Contact Number:");
+        contactLabel.setFont(labelFont);
+        personalInfoSection.add(contactLabel, personalGbc);
+
+        personalGbc.gridx = 1; personalGbc.fill = GridBagConstraints.HORIZONTAL; personalGbc.weightx = 1.0;
+        JTextField contactField = new JTextField(20);
+        contactField.setPreferredSize(new Dimension(0, 25));
+        contactField.setFont(inputFont);
+        contactField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        ComponentFactory.addPlaceholder(contactField, "Mobile number or landline with area code");
+        personalInfoSection.add(contactField, personalGbc);
+
+        return personalInfoSection;
+    }
 
     public static JScrollPane createBarangayClearanceForm() {
         JPanel formPanel = new JPanel(new GridBagLayout());
@@ -1443,6 +1617,656 @@ public class DocumentFactory {
         return formPanel;
     }
 
+    //Certificate for Community Tax Certificate Form (Cedula)
+    public static JPanel createCommunityTaxCertificateForm(){
+        Font labelFont = new Font("Trebuchet MS", Font.BOLD, 12);
+        Font inputFont = new Font("Trebuchet MS", Font.PLAIN, 12);
+        Font sectionFont = new Font("Trebuchet MS", Font.BOLD, 14);
+
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        formPanel.setOpaque(false);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.anchor = GridBagConstraints.WEST;
+
+        // Document Information Section Header ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = 0; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0; gbc.gridwidth = 2;
+        JPanel docInfoSection = createDocumentInformationSection();
+        formPanel.add(docInfoSection, gbc);
+        gbc.gridwidth = 1; // Reset gridwidth
+
+        // Personal Information Section Header ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0; gbc.gridwidth = 2;
+        JPanel personalInfoSection = createPersonalInformationSection();
+        formPanel.add(personalInfoSection, gbc);
+        gbc.gridwidth = 1; // Reset gridwidth
+
+        // Specific Information for Application Section Header ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = 2; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0; gbc.gridwidth = 2;
+        JPanel specificInfoSection = new JPanel(new GridBagLayout());
+        specificInfoSection.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder(Color.BLACK),
+                "Specific Information for Application",
+                TitledBorder.LEFT, TitledBorder.TOP, sectionFont
+        ));
+        specificInfoSection.setOpaque(false);
+
+        GridBagConstraints specificGbc = new GridBagConstraints();
+        specificGbc.insets = new Insets(5, 5, 5, 5);
+        specificGbc.anchor = GridBagConstraints.WEST;
+
+        // Sex (Radio Buttons)
+        specificGbc.gridx = 0; specificGbc.gridy = 0; specificGbc.fill = GridBagConstraints.NONE; specificGbc.weightx = 0;
+        JLabel sexLabel = new JLabel("Sex:");
+        sexLabel.setFont(labelFont);
+        specificInfoSection.add(sexLabel, specificGbc);
+
+        JPanel sexPanel = new JPanel();
+        sexPanel.setLayout(new BoxLayout(sexPanel, BoxLayout.X_AXIS));
+        sexPanel.setOpaque(false);
+
+        ButtonGroup sexGroup = new ButtonGroup();
+        JRadioButton maleRadio = new JRadioButton("Male");
+        JRadioButton femaleRadio = new JRadioButton("Female");
+        JRadioButton notSayRadio = new JRadioButton("Rather not say");
+
+        maleRadio.setFont(inputFont);
+        femaleRadio.setFont(inputFont);
+        notSayRadio.setFont(inputFont);
+        maleRadio.setOpaque(false);
+        femaleRadio.setOpaque(false);
+        notSayRadio.setOpaque(false);
+
+        sexGroup.add(maleRadio);
+        sexGroup.add(femaleRadio);
+        sexGroup.add(notSayRadio);
+
+        sexPanel.add(maleRadio);
+        sexPanel.add(Box.createHorizontalStrut(15));
+        sexPanel.add(femaleRadio);
+        sexPanel.add(Box.createHorizontalStrut(15));
+        sexPanel.add(notSayRadio);
+
+        specificGbc.gridx = 1; specificGbc.fill = GridBagConstraints.HORIZONTAL; specificGbc.weightx = 1.0;
+        specificInfoSection.add(sexPanel, specificGbc);
+
+        // Civil Status
+        specificGbc.gridx = 0; specificGbc.gridy = 1; specificGbc.fill = GridBagConstraints.NONE; specificGbc.weightx = 0;
+        JLabel civilStatusLabel = new JLabel("Civil Status:");
+        civilStatusLabel.setFont(labelFont);
+        specificInfoSection.add(civilStatusLabel, specificGbc);
+
+        specificGbc.gridx = 1; specificGbc.fill = GridBagConstraints.HORIZONTAL; specificGbc.weightx = 1.0;
+        String[] civilStatusOptions = {"Select Civil Status", "Single", "Married", "Widowed", "Separated"};
+        JComboBox<String> civilStatusCombo = new JComboBox<>(civilStatusOptions);
+        civilStatusCombo.setPreferredSize(new Dimension(0, 25));
+        civilStatusCombo.setFont(inputFont);
+        civilStatusCombo.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        specificInfoSection.add(civilStatusCombo, specificGbc);
+
+        // Birthplace
+        specificGbc.gridx = 0; specificGbc.gridy = 2; specificGbc.fill = GridBagConstraints.NONE; specificGbc.weightx = 0;
+        JLabel birthplaceLabel = new JLabel("Birthplace:");
+        birthplaceLabel.setFont(labelFont);
+        specificInfoSection.add(birthplaceLabel, specificGbc);
+
+        specificGbc.gridx = 1; specificGbc.fill = GridBagConstraints.HORIZONTAL; specificGbc.weightx = 1.0;
+        JTextField birthplaceField = new JTextField(20);
+        birthplaceField.setPreferredSize(new Dimension(0, 25));
+        birthplaceField.setFont(inputFont);
+        birthplaceField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        ComponentFactory.addPlaceholder(birthplaceField, "City/Municipality, Province, Country");
+        specificInfoSection.add(birthplaceField, specificGbc);
+
+        // Purpose
+        specificGbc.gridx = 0; specificGbc.gridy = 3; specificGbc.fill = GridBagConstraints.NONE; specificGbc.weightx = 0;
+        JLabel purposeLabel = new JLabel("Purpose:");
+        purposeLabel.setFont(labelFont);
+        specificInfoSection.add(purposeLabel, specificGbc);
+
+        specificGbc.gridx = 1; specificGbc.fill = GridBagConstraints.HORIZONTAL; specificGbc.weightx = 1.0;
+        String[] purposeOptions = {
+                "Select Purpose",
+                "Proof of Identification",
+                "Employment",
+                "Business Registration/Renewal",
+                "Notarization of Documents",
+                "Filing Income Tax Returns",
+                "Government Transactions/Permits",
+                "Others"
+        };
+        JComboBox<String> purposeCombo = new JComboBox<>(purposeOptions);
+        purposeCombo.setPreferredSize(new Dimension(0, 25));
+        purposeCombo.setFont(inputFont);
+        purposeCombo.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        specificInfoSection.add(purposeCombo, specificGbc);
+
+        // If others, please specify (initially hidden)
+        specificGbc.gridx = 0; specificGbc.gridy = 4; specificGbc.fill = GridBagConstraints.NONE; specificGbc.weightx = 0;
+        JLabel othersLabel = new JLabel("If others, please specify:");
+        othersLabel.setFont(labelFont);
+        othersLabel.setVisible(false);
+        specificInfoSection.add(othersLabel, specificGbc);
+
+        specificGbc.gridx = 1; specificGbc.fill = GridBagConstraints.HORIZONTAL; specificGbc.weightx = 1.0;
+        JTextField othersField = new JTextField(20);
+        othersField.setPreferredSize(new Dimension(0, 25));
+        othersField.setFont(inputFont);
+        othersField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        othersField.setVisible(false);
+        ComponentFactory.addPlaceholder(othersField, "Please specify your purpose");
+        specificInfoSection.add(othersField, specificGbc);
+
+        // Purpose combo action listener for conditional field
+        purposeCombo.addActionListener(e -> {
+            boolean showOthers = "Others".equals(purposeCombo.getSelectedItem());
+            othersLabel.setVisible(showOthers);
+            othersField.setVisible(showOthers);
+            specificInfoSection.revalidate();
+            specificInfoSection.repaint();
+        });
+
+        // Business Income
+        specificGbc.gridx = 0; specificGbc.gridy = 5; specificGbc.fill = GridBagConstraints.NONE; specificGbc.weightx = 0;
+        JLabel businessIncomeLabel = new JLabel("Business Income:");
+        businessIncomeLabel.setFont(labelFont);
+        specificInfoSection.add(businessIncomeLabel, specificGbc);
+
+        specificGbc.gridx = 1; specificGbc.fill = GridBagConstraints.HORIZONTAL; specificGbc.weightx = 1.0;
+        JTextField businessIncomeField = new JTextField(20);
+        businessIncomeField.setPreferredSize(new Dimension(0, 25));
+        businessIncomeField.setFont(inputFont);
+        businessIncomeField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        ComponentFactory.addPlaceholder(businessIncomeField, "Gross business earnings last year");
+        specificInfoSection.add(businessIncomeField, specificGbc);
+
+        // Professional/Occupational Income
+        specificGbc.gridx = 0; specificGbc.gridy = 6; specificGbc.fill = GridBagConstraints.NONE; specificGbc.weightx = 0;
+        JLabel professionalIncomeLabel = new JLabel("Professional/Occupational Income:");
+        professionalIncomeLabel.setFont(labelFont);
+        specificInfoSection.add(professionalIncomeLabel, specificGbc);
+
+        specificGbc.gridx = 1; specificGbc.fill = GridBagConstraints.HORIZONTAL; specificGbc.weightx = 1.0;
+        JTextField professionalIncomeField = new JTextField(20);
+        professionalIncomeField.setPreferredSize(new Dimension(0, 25));
+        professionalIncomeField.setFont(inputFont);
+        professionalIncomeField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        ComponentFactory.addPlaceholder(professionalIncomeField, "Total job earnings last year");
+        specificInfoSection.add(professionalIncomeField, specificGbc);
+
+        // Real Property Income
+        specificGbc.gridx = 0; specificGbc.gridy = 7; specificGbc.fill = GridBagConstraints.NONE; specificGbc.weightx = 0;
+        JLabel propertyIncomeLabel = new JLabel("Real Property Income:");
+        propertyIncomeLabel.setFont(labelFont);
+        specificInfoSection.add(propertyIncomeLabel, specificGbc);
+
+        specificGbc.gridx = 1; specificGbc.fill = GridBagConstraints.HORIZONTAL; specificGbc.weightx = 1.0;
+        JTextField propertyIncomeField = new JTextField(20);
+        propertyIncomeField.setPreferredSize(new Dimension(0, 25));
+        propertyIncomeField.setFont(inputFont);
+        propertyIncomeField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        ComponentFactory.addPlaceholder(propertyIncomeField, "Total rental income last year");
+        specificInfoSection.add(propertyIncomeField, specificGbc);
+
+        // Total Amount
+        specificGbc.gridx = 0; specificGbc.gridy = 8; specificGbc.fill = GridBagConstraints.NONE; specificGbc.weightx = 0;
+        JLabel totalAmountLabel = new JLabel("Total Amount:");
+        totalAmountLabel.setFont(new Font("Trebuchet MS", Font.BOLD, 14));
+        specificInfoSection.add(totalAmountLabel, specificGbc);
+
+        specificGbc.gridx = 1; specificGbc.fill = GridBagConstraints.HORIZONTAL; specificGbc.weightx = 1.0;
+        JTextField totalAmountField = new JTextField(20);
+        totalAmountField.setPreferredSize(new Dimension(0, 25));
+        totalAmountField.setFont(new Font("Trebuchet MS", Font.BOLD, 14));
+        totalAmountField.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
+        totalAmountField.setEditable(false);
+        totalAmountField.setBackground(UIManager.getColor("TextField.inactiveBackground"));
+        ComponentFactory.addPlaceholder(totalAmountField, "Calculated total tax");
+        specificInfoSection.add(totalAmountField, specificGbc);
+
+        ComponentFactory.addCommunityTaxCalculationListener(businessIncomeField, professionalIncomeField, propertyIncomeField, totalAmountField);
+
+        formPanel.add(specificInfoSection, gbc);
+        gbc.gridwidth = 1; // Reset gridwidth
+
+        // Documents to Present Section Header ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = 3; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0; gbc.gridwidth = 2;
+        JPanel documentsSection = new JPanel(new GridBagLayout());
+        documentsSection.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder(Color.BLACK),
+                "Documents to Present",
+                TitledBorder.LEFT, TitledBorder.TOP, sectionFont
+        ));
+        documentsSection.setOpaque(false);
+
+        GridBagConstraints docCheckGbc = new GridBagConstraints();
+        docCheckGbc.insets = new Insets(5, 5, 5, 5);
+        docCheckGbc.anchor = GridBagConstraints.WEST;
+        docCheckGbc.gridx = 0; docCheckGbc.gridy = 0; docCheckGbc.fill = GridBagConstraints.HORIZONTAL; docCheckGbc.weightx = 1.0;
+
+        String[] documentOptions = {
+                "Valid ID (Driver's License, SSS ID, Postal ID, etc.)",
+                "Proof of Income (if applicable)",
+                "Receipt of Payment (if applicable)"
+        };
+
+        JPanel documentsPanel = new JPanel();
+        documentsPanel.setLayout(new BoxLayout(documentsPanel, BoxLayout.Y_AXIS));
+        documentsPanel.setOpaque(false);
+
+        for (String text : documentOptions) {
+            JCheckBox checkbox = new JCheckBox(text);
+            checkbox.setFont(inputFont);
+            checkbox.setOpaque(false);
+            documentsPanel.add(checkbox);
+        }
+
+        documentsSection.add(documentsPanel, docCheckGbc);
+        formPanel.add(documentsSection, gbc);
+        gbc.gridwidth = 1; // Reset gridwidth
+
+        return formPanel;
+    }
+
+    //Certificate for Community Tax Certificate Form (Cedula)
+    public static JPanel createsCommunityTaxCertificateForm(){
+        Font labelFont = new Font("Trebuchet MS", Font.BOLD, 12);
+        Font inputFont = new Font("Trebuchet MS", Font.PLAIN, 12);
+        Font sectionFont = new Font("Trebuchet MS", Font.BOLD, 14);
+
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        formPanel.setOpaque(false);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.anchor = GridBagConstraints.WEST;
+
+        // Document Information Section Header ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = 0; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0; gbc.gridwidth = 2;
+        JPanel docInfoSection = new JPanel(new GridBagLayout());
+        docInfoSection.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder(Color.BLACK),
+                "Document Information",
+                TitledBorder.LEFT, TitledBorder.TOP, sectionFont
+        ));
+        docInfoSection.setOpaque(false);
+
+        GridBagConstraints docGbc = new GridBagConstraints();
+        docGbc.insets = new Insets(5, 5, 5, 5);
+        docGbc.anchor = GridBagConstraints.WEST;
+
+        // Certification Number
+        docGbc.gridx = 0; docGbc.gridy = 0; docGbc.fill = GridBagConstraints.NONE; docGbc.weightx = 0;
+        JLabel certNumberLabel = new JLabel("Certification Number:");
+        certNumberLabel.setFont(labelFont);
+        docInfoSection.add(certNumberLabel, docGbc);
+
+        docGbc.gridx = 1; docGbc.fill = GridBagConstraints.HORIZONTAL; docGbc.weightx = 1.0;
+        JTextField certNumberField = new JTextField(20);
+        certNumberField.setPreferredSize(new Dimension(0, 25));
+        certNumberField.setFont(inputFont);
+        certNumberField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        certNumberField.setEditable(false);
+        certNumberField.setBackground(UIManager.getColor("TextField.inactiveBackground"));
+        ComponentFactory.addPlaceholder(certNumberField, "Auto-generated upon processing");
+        docInfoSection.add(certNumberField, docGbc);
+
+        // Date Issued
+        docGbc.gridx = 0; docGbc.gridy = 1; docGbc.fill = GridBagConstraints.NONE; docGbc.weightx = 0;
+        JLabel dateIssuedLabel = new JLabel("Date Issued:");
+        dateIssuedLabel.setFont(labelFont);
+        docInfoSection.add(dateIssuedLabel, docGbc);
+
+        docGbc.gridx = 1; docGbc.fill = GridBagConstraints.HORIZONTAL; docGbc.weightx = 1.0;
+        JTextField dateIssuedField = new JTextField(20);
+        dateIssuedField.setPreferredSize(new Dimension(0, 25));
+        dateIssuedField.setFont(inputFont);
+        dateIssuedField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        dateIssuedField.setEditable(false);
+        dateIssuedField.setBackground(UIManager.getColor("TextField.inactiveBackground"));
+        ComponentFactory.addPlaceholder(dateIssuedField, "Auto-generated upon processing");
+        docInfoSection.add(dateIssuedField, docGbc);
+
+        formPanel.add(docInfoSection, gbc);
+        gbc.gridwidth = 1; // Reset gridwidth
+
+        // Personal Information Section Header ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0; gbc.gridwidth = 2;
+        JPanel personalInfoSection = new JPanel(new GridBagLayout());
+        personalInfoSection.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder(Color.BLACK),
+                "Personal Information",
+                TitledBorder.LEFT, TitledBorder.TOP, sectionFont
+        ));
+        personalInfoSection.setOpaque(false);
+
+        GridBagConstraints personalGbc = new GridBagConstraints();
+        personalGbc.insets = new Insets(5, 5, 5, 5);
+        personalGbc.anchor = GridBagConstraints.WEST;
+
+        // Full Name
+        personalGbc.gridx = 0; personalGbc.gridy = 0; personalGbc.fill = GridBagConstraints.NONE; personalGbc.weightx = 0;
+        JLabel fullNameLabel = new JLabel("Full Name:");
+        fullNameLabel.setFont(labelFont);
+        personalInfoSection.add(fullNameLabel, personalGbc);
+
+        personalGbc.gridx = 1; personalGbc.fill = GridBagConstraints.HORIZONTAL; personalGbc.weightx = 1.0;
+        JTextField fullNameField = new JTextField(20);
+        fullNameField.setPreferredSize(new Dimension(0, 25));
+        fullNameField.setFont(inputFont);
+        fullNameField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        ComponentFactory.addPlaceholder(fullNameField, "Last Name, First Name, Middle Initial");
+        personalInfoSection.add(fullNameField, personalGbc);
+
+        // Date of Birth
+        personalGbc.gridx = 0; personalGbc.gridy = 1; personalGbc.fill = GridBagConstraints.NONE; personalGbc.weightx = 0;
+        JLabel dobLabel = new JLabel("Date of Birth:");
+        dobLabel.setFont(labelFont);
+        personalInfoSection.add(dobLabel, personalGbc);
+
+        JPanel dobPanel = new JPanel();
+        dobPanel.setPreferredSize(new Dimension(0, 25));
+        dobPanel.setFont(inputFont);
+        dobPanel.setLayout(new BoxLayout(dobPanel, BoxLayout.X_AXIS));
+        dobPanel.setOpaque(false);
+
+        JComboBox<String> dobYearCombo = new JComboBox<>();
+        JComboBox<String> dobMonthCombo = new JComboBox<>();
+        JComboBox<String> dobDayCombo = new JComboBox<>();
+
+        dobYearCombo.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        dobMonthCombo.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        dobDayCombo.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+
+        dobPanel.add(new JLabel("Month:"));
+        dobPanel.add(Box.createHorizontalStrut(5));
+        dobPanel.add(dobMonthCombo);
+        dobPanel.add(Box.createHorizontalStrut(10));
+
+        dobPanel.add(new JLabel("Day:"));
+        dobPanel.add(Box.createHorizontalStrut(5));
+        dobPanel.add(dobDayCombo);
+        dobPanel.add(Box.createHorizontalStrut(10));
+
+        dobPanel.add(new JLabel("Year:"));
+        dobPanel.add(Box.createHorizontalStrut(5));
+        dobPanel.add(dobYearCombo);
+        dobPanel.add(Box.createHorizontalStrut(10));
+
+        dobPanel.add(new JLabel("Age:"));
+        dobPanel.add(Box.createHorizontalStrut(5));
+        JTextField ageField = new JTextField(5);
+        ageField.setFont(inputFont);
+        ageField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        ageField.setEditable(false);
+        ageField.setBackground(UIManager.getColor("TextField.inactiveBackground"));
+        ComponentFactory.addPlaceholder(ageField, "Auto-calculated");
+        dobPanel.add(ageField);
+
+        ComponentFactory.setupDateComboBoxes(dobYearCombo, dobMonthCombo, dobDayCombo);
+
+        personalGbc.gridx = 1; personalGbc.fill = GridBagConstraints.HORIZONTAL; personalGbc.weightx = 1.0;
+        personalInfoSection.add(dobPanel, personalGbc);
+
+        ComponentFactory.addAgeCalculationListener(dobYearCombo, dobMonthCombo, dobDayCombo, ageField);
+
+        // Complete Address
+        personalGbc.gridx = 0; personalGbc.gridy = 2; personalGbc.fill = GridBagConstraints.NONE; personalGbc.weightx = 0;
+        JLabel addressLabel = new JLabel("Complete Address:");
+        addressLabel.setFont(labelFont);
+        personalInfoSection.add(addressLabel, personalGbc);
+
+        personalGbc.gridx = 1; personalGbc.fill = GridBagConstraints.HORIZONTAL; personalGbc.weightx = 1.0;
+        JTextField addressField = new JTextField(20);
+        addressField.setPreferredSize(new Dimension(0, 25));
+        addressField.setFont(inputFont);
+        addressField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        ComponentFactory.addPlaceholder(addressField, "House/Building/Blk/Lot No., Street, Barangay, City/Municipality, Province");
+        personalInfoSection.add(addressField, personalGbc);
+
+        // Contact Number
+        personalGbc.gridx = 0; personalGbc.gridy = 3; personalGbc.fill = GridBagConstraints.NONE; personalGbc.weightx = 0;
+        JLabel contactLabel = new JLabel("Contact Number:");
+        contactLabel.setFont(labelFont);
+        personalInfoSection.add(contactLabel, personalGbc);
+
+        personalGbc.gridx = 1; personalGbc.fill = GridBagConstraints.HORIZONTAL; personalGbc.weightx = 1.0;
+        JTextField contactField = new JTextField(20);
+        contactField.setPreferredSize(new Dimension(0, 25));
+        contactField.setFont(inputFont);
+        contactField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        ComponentFactory.addPlaceholder(contactField, "Mobile number or landline with area code");
+        personalInfoSection.add(contactField, personalGbc);
+
+        formPanel.add(personalInfoSection, gbc);
+        gbc.gridwidth = 1; // Reset gridwidth
+
+        // Specific Information for Application Section Header ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = 2; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0; gbc.gridwidth = 2;
+        JPanel specificInfoSection = new JPanel(new GridBagLayout());
+        specificInfoSection.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder(Color.BLACK),
+                "Specific Information for Application",
+                TitledBorder.LEFT, TitledBorder.TOP, sectionFont
+        ));
+        specificInfoSection.setOpaque(false);
+
+        GridBagConstraints specificGbc = new GridBagConstraints();
+        specificGbc.insets = new Insets(5, 5, 5, 5);
+        specificGbc.anchor = GridBagConstraints.WEST;
+
+        // Sex (Radio Buttons)
+        specificGbc.gridx = 0; specificGbc.gridy = 0; specificGbc.fill = GridBagConstraints.NONE; specificGbc.weightx = 0;
+        JLabel sexLabel = new JLabel("Sex:");
+        sexLabel.setFont(labelFont);
+        specificInfoSection.add(sexLabel, specificGbc);
+
+        JPanel sexPanel = new JPanel();
+        sexPanel.setLayout(new BoxLayout(sexPanel, BoxLayout.X_AXIS));
+        sexPanel.setOpaque(false);
+
+        ButtonGroup sexGroup = new ButtonGroup();
+        JRadioButton maleRadio = new JRadioButton("Male");
+        JRadioButton femaleRadio = new JRadioButton("Female");
+        JRadioButton notSayRadio = new JRadioButton("Rather not say");
+
+        maleRadio.setFont(inputFont);
+        femaleRadio.setFont(inputFont);
+        notSayRadio.setFont(inputFont);
+        maleRadio.setOpaque(false);
+        femaleRadio.setOpaque(false);
+        notSayRadio.setOpaque(false);
+
+        sexGroup.add(maleRadio);
+        sexGroup.add(femaleRadio);
+        sexGroup.add(notSayRadio);
+
+        sexPanel.add(maleRadio);
+        sexPanel.add(Box.createHorizontalStrut(15));
+        sexPanel.add(femaleRadio);
+        sexPanel.add(Box.createHorizontalStrut(15));
+        sexPanel.add(notSayRadio);
+
+        specificGbc.gridx = 1; specificGbc.fill = GridBagConstraints.HORIZONTAL; specificGbc.weightx = 1.0;
+        specificInfoSection.add(sexPanel, specificGbc);
+
+        // Civil Status
+        specificGbc.gridx = 0; specificGbc.gridy = 1; specificGbc.fill = GridBagConstraints.NONE; specificGbc.weightx = 0;
+        JLabel civilStatusLabel = new JLabel("Civil Status:");
+        civilStatusLabel.setFont(labelFont);
+        specificInfoSection.add(civilStatusLabel, specificGbc);
+
+        specificGbc.gridx = 1; specificGbc.fill = GridBagConstraints.HORIZONTAL; specificGbc.weightx = 1.0;
+        String[] civilStatusOptions = {"Select Civil Status", "Single", "Married", "Widowed", "Separated"};
+        JComboBox<String> civilStatusCombo = new JComboBox<>(civilStatusOptions);
+        civilStatusCombo.setPreferredSize(new Dimension(0, 25));
+        civilStatusCombo.setFont(inputFont);
+        civilStatusCombo.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        specificInfoSection.add(civilStatusCombo, specificGbc);
+
+        // Birthplace
+        specificGbc.gridx = 0; specificGbc.gridy = 2; specificGbc.fill = GridBagConstraints.NONE; specificGbc.weightx = 0;
+        JLabel birthplaceLabel = new JLabel("Birthplace:");
+        birthplaceLabel.setFont(labelFont);
+        specificInfoSection.add(birthplaceLabel, specificGbc);
+
+        specificGbc.gridx = 1; specificGbc.fill = GridBagConstraints.HORIZONTAL; specificGbc.weightx = 1.0;
+        JTextField birthplaceField = new JTextField(20);
+        birthplaceField.setPreferredSize(new Dimension(0, 25));
+        birthplaceField.setFont(inputFont);
+        birthplaceField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        ComponentFactory.addPlaceholder(birthplaceField, "City/Municipality, Province, Country");
+        specificInfoSection.add(birthplaceField, specificGbc);
+
+        // Purpose
+        specificGbc.gridx = 0; specificGbc.gridy = 3; specificGbc.fill = GridBagConstraints.NONE; specificGbc.weightx = 0;
+        JLabel purposeLabel = new JLabel("Purpose:");
+        purposeLabel.setFont(labelFont);
+        specificInfoSection.add(purposeLabel, specificGbc);
+
+        specificGbc.gridx = 1; specificGbc.fill = GridBagConstraints.HORIZONTAL; specificGbc.weightx = 1.0;
+        String[] purposeOptions = {
+                "Select Purpose",
+                "Proof of Identification",
+                "Employment",
+                "Business Registration/Renewal",
+                "Notarization of Documents",
+                "Filing Income Tax Returns",
+                "Government Transactions/Permits",
+                "Others"
+        };
+        JComboBox<String> purposeCombo = new JComboBox<>(purposeOptions);
+        purposeCombo.setPreferredSize(new Dimension(0, 25));
+        purposeCombo.setFont(inputFont);
+        purposeCombo.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        specificInfoSection.add(purposeCombo, specificGbc);
+
+        // If others, please specify (initially hidden)
+        specificGbc.gridx = 0; specificGbc.gridy = 4; specificGbc.fill = GridBagConstraints.NONE; specificGbc.weightx = 0;
+        JLabel othersLabel = new JLabel("If others, please specify:");
+        othersLabel.setFont(labelFont);
+        othersLabel.setVisible(false);
+        specificInfoSection.add(othersLabel, specificGbc);
+
+        specificGbc.gridx = 1; specificGbc.fill = GridBagConstraints.HORIZONTAL; specificGbc.weightx = 1.0;
+        JTextField othersField = new JTextField(20);
+        othersField.setPreferredSize(new Dimension(0, 25));
+        othersField.setFont(inputFont);
+        othersField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        othersField.setVisible(false);
+        ComponentFactory.addPlaceholder(othersField, "Please specify your purpose");
+        specificInfoSection.add(othersField, specificGbc);
+
+        // Purpose combo action listener for conditional field
+        purposeCombo.addActionListener(e -> {
+            boolean showOthers = "Others".equals(purposeCombo.getSelectedItem());
+            othersLabel.setVisible(showOthers);
+            othersField.setVisible(showOthers);
+            specificInfoSection.revalidate();
+            specificInfoSection.repaint();
+        });
+
+        // Business Income
+        specificGbc.gridx = 0; specificGbc.gridy = 5; specificGbc.fill = GridBagConstraints.NONE; specificGbc.weightx = 0;
+        JLabel businessIncomeLabel = new JLabel("Business Income:");
+        businessIncomeLabel.setFont(labelFont);
+        specificInfoSection.add(businessIncomeLabel, specificGbc);
+
+        specificGbc.gridx = 1; specificGbc.fill = GridBagConstraints.HORIZONTAL; specificGbc.weightx = 1.0;
+        JTextField businessIncomeField = new JTextField(20);
+        businessIncomeField.setPreferredSize(new Dimension(0, 25));
+        businessIncomeField.setFont(inputFont);
+        businessIncomeField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        ComponentFactory.addPlaceholder(businessIncomeField, "Gross business earnings last year");
+        specificInfoSection.add(businessIncomeField, specificGbc);
+
+        // Professional/Occupational Income
+        specificGbc.gridx = 0; specificGbc.gridy = 6; specificGbc.fill = GridBagConstraints.NONE; specificGbc.weightx = 0;
+        JLabel professionalIncomeLabel = new JLabel("Professional/Occupational Income:");
+        professionalIncomeLabel.setFont(labelFont);
+        specificInfoSection.add(professionalIncomeLabel, specificGbc);
+
+        specificGbc.gridx = 1; specificGbc.fill = GridBagConstraints.HORIZONTAL; specificGbc.weightx = 1.0;
+        JTextField professionalIncomeField = new JTextField(20);
+        professionalIncomeField.setPreferredSize(new Dimension(0, 25));
+        professionalIncomeField.setFont(inputFont);
+        professionalIncomeField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        ComponentFactory.addPlaceholder(professionalIncomeField, "Total job earnings last year");
+        specificInfoSection.add(professionalIncomeField, specificGbc);
+
+        // Real Property Income
+        specificGbc.gridx = 0; specificGbc.gridy = 7; specificGbc.fill = GridBagConstraints.NONE; specificGbc.weightx = 0;
+        JLabel propertyIncomeLabel = new JLabel("Real Property Income:");
+        propertyIncomeLabel.setFont(labelFont);
+        specificInfoSection.add(propertyIncomeLabel, specificGbc);
+
+        specificGbc.gridx = 1; specificGbc.fill = GridBagConstraints.HORIZONTAL; specificGbc.weightx = 1.0;
+        JTextField propertyIncomeField = new JTextField(20);
+        propertyIncomeField.setPreferredSize(new Dimension(0, 25));
+        propertyIncomeField.setFont(inputFont);
+        propertyIncomeField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        ComponentFactory.addPlaceholder(propertyIncomeField, "Total rental income last year");
+        specificInfoSection.add(propertyIncomeField, specificGbc);
+
+        // Total Amount
+        specificGbc.gridx = 0; specificGbc.gridy = 8; specificGbc.fill = GridBagConstraints.NONE; specificGbc.weightx = 0;
+        JLabel totalAmountLabel = new JLabel("Total Amount:");
+        totalAmountLabel.setFont(new Font("Trebuchet MS", Font.BOLD, 14));
+        specificInfoSection.add(totalAmountLabel, specificGbc);
+
+        specificGbc.gridx = 1; specificGbc.fill = GridBagConstraints.HORIZONTAL; specificGbc.weightx = 1.0;
+        JTextField totalAmountField = new JTextField(20);
+        totalAmountField.setPreferredSize(new Dimension(0, 25));
+        totalAmountField.setFont(new Font("Trebuchet MS", Font.BOLD, 14));
+        totalAmountField.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
+        totalAmountField.setEditable(false);
+        totalAmountField.setBackground(UIManager.getColor("TextField.inactiveBackground"));
+        ComponentFactory.addPlaceholder(totalAmountField, "Calculated total tax");
+        specificInfoSection.add(totalAmountField, specificGbc);
+
+        ComponentFactory.addCommunityTaxCalculationListener(businessIncomeField, professionalIncomeField, propertyIncomeField, totalAmountField);
+
+        formPanel.add(specificInfoSection, gbc);
+        gbc.gridwidth = 1; // Reset gridwidth
+
+        // Documents to Present Section Header ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = 3; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0; gbc.gridwidth = 2;
+        JPanel documentsSection = new JPanel(new GridBagLayout());
+        documentsSection.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder(Color.BLACK),
+                "Documents to Present",
+                TitledBorder.LEFT, TitledBorder.TOP, sectionFont
+        ));
+        documentsSection.setOpaque(false);
+
+        GridBagConstraints docCheckGbc = new GridBagConstraints();
+        docCheckGbc.insets = new Insets(5, 5, 5, 5);
+        docCheckGbc.anchor = GridBagConstraints.WEST;
+        docCheckGbc.gridx = 0; docCheckGbc.gridy = 0; docCheckGbc.fill = GridBagConstraints.HORIZONTAL; docCheckGbc.weightx = 1.0;
+
+        String[] documentOptions = {
+                "Valid ID (Driver's License, SSS ID, Postal ID, etc.)",
+                "Proof of Income (if applicable)",
+                "Receipt of Payment (if applicable)"
+        };
+
+        JPanel documentsPanel = new JPanel();
+        documentsPanel.setLayout(new BoxLayout(documentsPanel, BoxLayout.Y_AXIS));
+        documentsPanel.setOpaque(false);
+
+        for (String text : documentOptions) {
+            JCheckBox checkbox = new JCheckBox(text);
+            checkbox.setFont(inputFont);
+            checkbox.setOpaque(false);
+            documentsPanel.add(checkbox);
+        }
+
+        documentsSection.add(documentsPanel, docCheckGbc);
+        formPanel.add(documentsSection, gbc);
+        gbc.gridwidth = 1; // Reset gridwidth
+
+        return formPanel;
+    }
+
     //Certificate for First Time Job Seeker Form
     public static JPanel createFirstTimeJobSeekerForm(){
         Font labelFont = new Font("Trebuchet MS", Font.BOLD, 12);
@@ -1752,6 +2576,1385 @@ public class DocumentFactory {
         return formPanel;
     }
 
+    //Certificate for Late Registration Form
+    public static JPanel createLateRegistrationForm(){
+        Font labelFont = new Font("Trebuchet MS", Font.BOLD, 12);
+        Font inputFont = new Font("Trebuchet MS", Font.PLAIN, 12);
+
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        formPanel.setOpaque(false);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.anchor = GridBagConstraints.WEST;
+
+        // Type of Registration (Radio Buttons) ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = 0; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JLabel registrationTypeLabel = new JLabel("Type of Registration:");
+        registrationTypeLabel.setFont(labelFont);
+        formPanel.add(registrationTypeLabel, gbc);
+
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JPanel radioPanel = new JPanel();
+        radioPanel.setLayout(new BoxLayout(radioPanel, BoxLayout.Y_AXIS));
+        radioPanel.setOpaque(false);
+
+        ButtonGroup registrationTypeGroup = new ButtonGroup();
+        JRadioButton birthRadio = new JRadioButton("Birth Certificate");
+        JRadioButton marriageRadio = new JRadioButton("Marriage Certificate");
+        JRadioButton deathRadio = new JRadioButton("Death Certificate");
+
+        birthRadio.setFont(inputFont);
+        marriageRadio.setFont(inputFont);
+        deathRadio.setFont(inputFont);
+
+        birthRadio.setOpaque(false);
+        marriageRadio.setOpaque(false);
+        deathRadio.setOpaque(false);
+
+        registrationTypeGroup.add(birthRadio);
+        registrationTypeGroup.add(marriageRadio);
+        registrationTypeGroup.add(deathRadio);
+
+        radioPanel.add(birthRadio);
+        radioPanel.add(marriageRadio);
+        radioPanel.add(deathRadio);
+
+        formPanel.add(radioPanel, gbc);
+
+        // Reason for Late Registration (Dropdown) ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = 1; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JLabel reasonLabel = new JLabel("Reason for Late Registration:");
+        reasonLabel.setFont(labelFont);
+        formPanel.add(reasonLabel, gbc);
+
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+
+        String[] reasonOptions = {
+                "Select reason for late registration",
+                "Lost or Destroyed Documents",
+                "Lack of Knowledge about Registration Requirements",
+                "Financial Constraints",
+                "Geographical Isolation",
+                "Family Negligence",
+                "Administrative Error",
+                "Others"
+        };
+
+        JComboBox<String> reasonCombo = new JComboBox<>(reasonOptions);
+        reasonCombo.setPreferredSize(new Dimension(0, 25));
+        reasonCombo.setFont(inputFont);
+        reasonCombo.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        formPanel.add(reasonCombo, gbc);
+
+        // Please specify the reason ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = 2; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JLabel specifyReasonLabel = new JLabel("Please specify the reason:");
+        specifyReasonLabel.setFont(labelFont);
+        formPanel.add(specifyReasonLabel, gbc);
+
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField specifyReasonField = new JTextField();
+        specifyReasonField.setPreferredSize(new Dimension(0, 25));
+        specifyReasonField.setFont(inputFont);
+        specifyReasonField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        specifyReasonField.setEnabled(false); // Initially disabled
+        specifyReasonField.setBackground(UIManager.getColor("TextField.inactiveBackground"));
+
+        ComponentFactory.addPlaceholder(specifyReasonField, "Specify if 'Others' is selected");
+        formPanel.add(specifyReasonField, gbc);
+
+        ComponentFactory.setupEducationFieldToggle(reasonCombo, specifyReasonField, "Specify if 'Others' is selected");
+
+        // Date when the event occurred ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = 3; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JLabel eventDateLabel = new JLabel("Date when the event occurred:");
+        eventDateLabel.setFont(labelFont);
+        formPanel.add(eventDateLabel, gbc);
+
+        // Date panel with combo boxes for event date
+        JPanel eventDatePanel = new JPanel();
+        eventDatePanel.setPreferredSize(new Dimension(0, 25));
+        eventDatePanel.setFont(inputFont);
+        eventDatePanel.setLayout(new BoxLayout(eventDatePanel, BoxLayout.X_AXIS));
+        eventDatePanel.setOpaque(false);
+
+        JComboBox<String> eventYearCombo = new JComboBox<>();
+        JComboBox<String> eventMonthCombo = new JComboBox<>();
+        JComboBox<String> eventDayCombo = new JComboBox<>();
+
+        eventYearCombo.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        eventMonthCombo.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        eventDayCombo.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+
+        eventDatePanel.add(new JLabel("Month:"));
+        eventDatePanel.add(Box.createHorizontalStrut(5));
+        eventDatePanel.add(eventMonthCombo);
+        eventDatePanel.add(Box.createHorizontalStrut(10));
+
+        eventDatePanel.add(new JLabel("Day:"));
+        eventDatePanel.add(Box.createHorizontalStrut(5));
+        eventDatePanel.add(eventDayCombo);
+        eventDatePanel.add(Box.createHorizontalStrut(10));
+
+        eventDatePanel.add(new JLabel("Year:"));
+        eventDatePanel.add(Box.createHorizontalStrut(5));
+        eventDatePanel.add(eventYearCombo);
+
+        // Initialize event date combo boxes
+        ComponentFactory.setupDateComboBoxes(eventYearCombo, eventMonthCombo, eventDayCombo);
+
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        formPanel.add(eventDatePanel, gbc);
+
+        // Place where the event occurred ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = 4; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JLabel eventPlaceLabel = new JLabel("Place where the event occurred:");
+        eventPlaceLabel.setFont(labelFont);
+        formPanel.add(eventPlaceLabel, gbc);
+
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField eventPlaceField = new JTextField(20);
+        eventPlaceField.setPreferredSize(new Dimension(0, 25));
+        eventPlaceField.setFont(inputFont);
+        eventPlaceField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+
+        ComponentFactory.addPlaceholder(eventPlaceField, "e.g., Birthplace, Wedding Venue, Deathplace");
+        formPanel.add(eventPlaceField, gbc);
+
+        // Full Name of Applicant ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = 5; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JLabel applicantNameLabel = new JLabel("Full Name of Applicant:");
+        applicantNameLabel.setFont(labelFont);
+        formPanel.add(applicantNameLabel, gbc);
+
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField applicantNameField = new JTextField(20);
+        applicantNameField.setPreferredSize(new Dimension(0, 25));
+        applicantNameField.setFont(inputFont);
+        applicantNameField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+
+        ComponentFactory.addPlaceholder(applicantNameField, "Last Name, First Name, Middle Initial");
+        formPanel.add(applicantNameField, gbc);
+
+        // Relationship to the Person in the Record (Dropdown) ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = 6; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JLabel relationshipLabel = new JLabel("Relationship to the Person in the Record:");
+        relationshipLabel.setFont(labelFont);
+        formPanel.add(relationshipLabel, gbc);
+
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+
+        String[] relationshipOptions = {
+                "Select Relationship",
+                "Self",
+                "Parent",
+                "Child",
+                "Spouse",
+                "Sibling",
+                "Legal Guardian",
+                "Authorized Representative"
+        };
+
+        JComboBox<String> relationshipCombo = new JComboBox<>(relationshipOptions);
+        relationshipCombo.setPreferredSize(new Dimension(0, 25));
+        relationshipCombo.setFont(inputFont);
+        relationshipCombo.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        formPanel.add(relationshipCombo, gbc);
+
+        // Date of Filing ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = 7; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JLabel filingDateLabel = new JLabel("Date of Filing:");
+        filingDateLabel.setFont(labelFont);
+        formPanel.add(filingDateLabel, gbc);
+
+        // Date panel with combo boxes for filing date
+        JPanel filingDatePanel = new JPanel();
+        filingDatePanel.setPreferredSize(new Dimension(0, 25));
+        filingDatePanel.setFont(inputFont);
+        filingDatePanel.setLayout(new BoxLayout(filingDatePanel, BoxLayout.X_AXIS));
+        filingDatePanel.setOpaque(false);
+
+        JComboBox<String> filingYearCombo = new JComboBox<>();
+        JComboBox<String> filingMonthCombo = new JComboBox<>();
+        JComboBox<String> filingDayCombo = new JComboBox<>();
+
+        filingYearCombo.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        filingMonthCombo.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        filingDayCombo.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+
+        filingDatePanel.add(new JLabel("Month:"));
+        filingDatePanel.add(Box.createHorizontalStrut(5));
+        filingDatePanel.add(filingMonthCombo);
+        filingDatePanel.add(Box.createHorizontalStrut(10));
+
+        filingDatePanel.add(new JLabel("Day:"));
+        filingDatePanel.add(Box.createHorizontalStrut(5));
+        filingDatePanel.add(filingDayCombo);
+        filingDatePanel.add(Box.createHorizontalStrut(10));
+
+        filingDatePanel.add(new JLabel("Year:"));
+        filingDatePanel.add(Box.createHorizontalStrut(5));
+        filingDatePanel.add(filingYearCombo);
+
+        // Initialize filing date combo boxes
+        ComponentFactory.setupDateComboBoxes(filingYearCombo, filingMonthCombo, filingDayCombo);
+
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        formPanel.add(filingDatePanel, gbc);
+
+        // Required Documents (Checkbox) ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = 8; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JLabel requirementsLabel = new JLabel("Required Documents:");
+        requirementsLabel.setFont(labelFont);
+        formPanel.add(requirementsLabel, gbc);
+
+        String[] requirementOptions = {
+                "Baptismal Certificate (if applicable)",
+                "School Records (if applicable)",
+                "Barangay Certification (if applicable)",
+                "Affidavit of Delayed Registration (if applicable)",
+                "Affidavit of Two Disinterested Persons (if applicable)",
+                "Valid government-issued ID of the applicant",
+                "Proof of relationship (if applying for someone else)",
+                "Authorization letter (if applying as a representative)",
+                "Payment for registration fees and penalties"
+        };
+
+        JPanel requirementsPanel = new JPanel();
+        requirementsPanel.setLayout(new BoxLayout(requirementsPanel, BoxLayout.Y_AXIS));
+        requirementsPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        requirementsPanel.setOpaque(false);
+
+        for (String text : requirementOptions) {
+            JCheckBox checkbox = new JCheckBox(text);
+            checkbox.setFont(inputFont);
+            checkbox.setOpaque(false);
+            requirementsPanel.add(checkbox);
+        }
+
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        formPanel.add(requirementsPanel, gbc);
+
+        return formPanel;
+    }
+
+    // Certificate for Low Income Form
+    public static JPanel createLowIncomeCertificateForm() {
+        Font labelFont = new Font("Trebuchet MS", Font.BOLD, 12);
+        Font inputFont = new Font("Trebuchet MS", Font.PLAIN, 12);
+        Font sectionFont = new Font("Trebuchet MS", Font.BOLD, 14);
+
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        formPanel.setOpaque(false);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.anchor = GridBagConstraints.WEST;
+
+        int currentRow = 0;
+
+        // Certificate Number ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = currentRow; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JLabel certNumberLabel = new JLabel("Certificate Number:");
+        certNumberLabel.setFont(labelFont);
+        formPanel.add(certNumberLabel, gbc);
+
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField certNumberField = new JTextField(20);
+        certNumberField.setPreferredSize(new Dimension(0, 25));
+        certNumberField.setFont(inputFont);
+        certNumberField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        ComponentFactory.addPlaceholder(certNumberField, "Auto-generated");
+        formPanel.add(certNumberField, gbc);
+        currentRow++;
+
+        // Date Issued ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = currentRow; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JLabel dateIssuedLabel = new JLabel("Date Issued:");
+        dateIssuedLabel.setFont(labelFont);
+        formPanel.add(dateIssuedLabel, gbc);
+
+        JPanel dateIssuedPanel = new JPanel();
+        dateIssuedPanel.setPreferredSize(new Dimension(0, 25));
+        dateIssuedPanel.setLayout(new BoxLayout(dateIssuedPanel, BoxLayout.X_AXIS));
+        dateIssuedPanel.setOpaque(false);
+
+        JComboBox<String> issuedYearCombo = new JComboBox<>();
+        JComboBox<String> issuedMonthCombo = new JComboBox<>();
+        JComboBox<String> issuedDayCombo = new JComboBox<>();
+
+        issuedYearCombo.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        issuedMonthCombo.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        issuedDayCombo.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+
+        dateIssuedPanel.add(new JLabel("Month:"));
+        dateIssuedPanel.add(Box.createHorizontalStrut(5));
+        dateIssuedPanel.add(issuedMonthCombo);
+        dateIssuedPanel.add(Box.createHorizontalStrut(10));
+        dateIssuedPanel.add(new JLabel("Day:"));
+        dateIssuedPanel.add(Box.createHorizontalStrut(5));
+        dateIssuedPanel.add(issuedDayCombo);
+        dateIssuedPanel.add(Box.createHorizontalStrut(10));
+        dateIssuedPanel.add(new JLabel("Year:"));
+        dateIssuedPanel.add(Box.createHorizontalStrut(5));
+        dateIssuedPanel.add(issuedYearCombo);
+
+        ComponentFactory.setupDateComboBoxes(issuedYearCombo, issuedMonthCombo, issuedDayCombo);
+
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        formPanel.add(dateIssuedPanel, gbc);
+        currentRow++;
+
+        // Barangay ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = currentRow; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JLabel barangayLabel = new JLabel("Barangay:");
+        barangayLabel.setFont(labelFont);
+        formPanel.add(barangayLabel, gbc);
+
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField barangayField = new JTextField(20);
+        barangayField.setPreferredSize(new Dimension(0, 25));
+        barangayField.setFont(inputFont);
+        barangayField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        ComponentFactory.addPlaceholder(barangayField, "Enter barangay name");
+        formPanel.add(barangayField, gbc);
+        currentRow++;
+
+        // Municipality/City ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = currentRow; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JLabel municipalityLabel = new JLabel("Municipality/City:");
+        municipalityLabel.setFont(labelFont);
+        formPanel.add(municipalityLabel, gbc);
+
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField municipalityField = new JTextField(20);
+        municipalityField.setPreferredSize(new Dimension(0, 25));
+        municipalityField.setFont(inputFont);
+        municipalityField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        ComponentFactory.addPlaceholder(municipalityField, "Enter municipality or city name");
+        formPanel.add(municipalityField, gbc);
+        currentRow++;
+
+        // Province ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = currentRow; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JLabel provinceLabel = new JLabel("Province:");
+        provinceLabel.setFont(labelFont);
+        formPanel.add(provinceLabel, gbc);
+
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField provinceField = new JTextField(20);
+        provinceField.setPreferredSize(new Dimension(0, 25));
+        provinceField.setFont(inputFont);
+        provinceField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        ComponentFactory.addPlaceholder(provinceField, "Enter province name");
+        formPanel.add(provinceField, gbc);
+        currentRow++;
+
+        // Applicant's Full Name ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = currentRow; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JLabel applicantNameLabel = new JLabel("Applicant's Full Name:");
+        applicantNameLabel.setFont(labelFont);
+        formPanel.add(applicantNameLabel, gbc);
+
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField applicantNameField = new JTextField(20);
+        applicantNameField.setPreferredSize(new Dimension(0, 25));
+        applicantNameField.setFont(inputFont);
+        applicantNameField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        ComponentFactory.addPlaceholder(applicantNameField, "Last Name, First Name, Middle Initial");
+        formPanel.add(applicantNameField, gbc);
+        currentRow++;
+
+        // Complete Address ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = currentRow; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JLabel completeAddressLabel = new JLabel("Complete Address:");
+        completeAddressLabel.setFont(labelFont);
+        formPanel.add(completeAddressLabel, gbc);
+
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField completeAddressField = new JTextField(20);
+        completeAddressField.setPreferredSize(new Dimension(0, 25));
+        completeAddressField.setFont(inputFont);
+        completeAddressField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        ComponentFactory.addPlaceholder(completeAddressField, "House/Building/Blk/Lot No., Street, Barangay, City/Municipality, Province");
+        formPanel.add(completeAddressField, gbc);
+        currentRow++;
+
+        // Section Header: Household Composition & Income Details ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = currentRow; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.HORIZONTAL;
+        JLabel householdSectionLabel = new JLabel("Household Composition & Income Details");
+        householdSectionLabel.setFont(sectionFont);
+        householdSectionLabel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.BLACK));
+        formPanel.add(householdSectionLabel, gbc);
+        gbc.gridwidth = 1; // Reset gridwidth
+        currentRow++;
+
+        // Total Number of Household Members ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = currentRow; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JLabel totalMembersLabel = new JLabel("Total Number of Household Members:");
+        totalMembersLabel.setFont(labelFont);
+        formPanel.add(totalMembersLabel, gbc);
+
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField totalMembersField = new JTextField(20);
+        totalMembersField.setPreferredSize(new Dimension(0, 25));
+        totalMembersField.setFont(inputFont);
+        totalMembersField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        ComponentFactory.addPlaceholder(totalMembersField, "Enter number (e.g., 4)");
+        formPanel.add(totalMembersField, gbc);
+        currentRow++;
+
+        // Number of Dependents ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = currentRow; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JLabel dependentsLabel = new JLabel("Number of Dependents (non-working):");
+        dependentsLabel.setFont(labelFont);
+        formPanel.add(dependentsLabel, gbc);
+
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField dependentsField = new JTextField(20);
+        dependentsField.setPreferredSize(new Dimension(0, 25));
+        dependentsField.setFont(inputFont);
+        dependentsField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        ComponentFactory.addPlaceholder(dependentsField, "Enter number (e.g., 2)");
+        formPanel.add(dependentsField, gbc);
+        currentRow++;
+
+        // Dynamic Household Members Panel ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = currentRow; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.HORIZONTAL;
+        JPanel householdMembersPanel = new JPanel();
+        householdMembersPanel.setLayout(new BoxLayout(householdMembersPanel, BoxLayout.Y_AXIS));
+        householdMembersPanel.setBorder(BorderFactory.createTitledBorder("Household Member Details"));
+        householdMembersPanel.setOpaque(false);
+
+        JLabel instructionLabel = new JLabel("Note: Household member details will be generated based on total number entered above");
+        instructionLabel.setFont(new Font("Trebuchet MS", Font.ITALIC, 11));
+        householdMembersPanel.add(instructionLabel);
+
+        formPanel.add(householdMembersPanel, gbc);
+        gbc.gridwidth = 1; // Reset gridwidth
+        currentRow++;
+
+        // Section Header: Combined Monthly Family Income ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = currentRow; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.HORIZONTAL;
+        JLabel incomeSectionLabel = new JLabel("Combined Monthly Family Income");
+        incomeSectionLabel.setFont(sectionFont);
+        incomeSectionLabel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.BLACK));
+        formPanel.add(incomeSectionLabel, gbc);
+        gbc.gridwidth = 1; // Reset gridwidth
+        currentRow++;
+
+        // Total Monthly Family Income ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = currentRow; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JLabel totalMonthlyIncomeLabel = new JLabel("Total Monthly Family Income (₱):");
+        totalMonthlyIncomeLabel.setFont(labelFont);
+        formPanel.add(totalMonthlyIncomeLabel, gbc);
+
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField totalMonthlyIncomeField = new JTextField(20);
+        totalMonthlyIncomeField.setPreferredSize(new Dimension(0, 25));
+        totalMonthlyIncomeField.setFont(inputFont);
+        totalMonthlyIncomeField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        totalMonthlyIncomeField.setEditable(false);
+        totalMonthlyIncomeField.setBackground(UIManager.getColor("TextField.inactiveBackground"));
+        ComponentFactory.addPlaceholder(totalMonthlyIncomeField, "Auto-calculated from household member incomes");
+        formPanel.add(totalMonthlyIncomeField, gbc);
+        currentRow++;
+
+        // Estimated Annual Income ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = currentRow; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JLabel annualIncomeLabel = new JLabel("Estimated Annual Income (₱):");
+        annualIncomeLabel.setFont(labelFont);
+        formPanel.add(annualIncomeLabel, gbc);
+
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField annualIncomeField = new JTextField(20);
+        annualIncomeField.setPreferredSize(new Dimension(0, 25));
+        annualIncomeField.setFont(inputFont);
+        annualIncomeField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        annualIncomeField.setEditable(false);
+        annualIncomeField.setBackground(UIManager.getColor("TextField.inactiveBackground"));
+        ComponentFactory.addPlaceholder(annualIncomeField, "Auto-calculated (Monthly Income × 12)");
+        formPanel.add(annualIncomeField, gbc);
+        currentRow++;
+
+        // Section Header: Source(s) of Income ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = currentRow; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.HORIZONTAL;
+        JLabel incomeSourceSectionLabel = new JLabel("Source(s) of Income");
+        incomeSourceSectionLabel.setFont(sectionFont);
+        incomeSourceSectionLabel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.BLACK));
+        formPanel.add(incomeSourceSectionLabel, gbc);
+        gbc.gridwidth = 1; // Reset gridwidth
+        currentRow++;
+
+        // Primary Sources of Income (Checkboxes) ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = currentRow; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JLabel primarySourcesLabel = new JLabel("Primary Sources of Income:");
+        primarySourcesLabel.setFont(labelFont);
+        formPanel.add(primarySourcesLabel, gbc);
+
+        String[] incomeSourceOptions = {
+                "Regular Employment/Salary",
+                "Business/Self-Employment",
+                "Farming/Agriculture",
+                "Overseas Worker Remittance",
+                "Pension/Retirement Benefits",
+                "Freelance/Contract Work",
+                "Rental Income",
+                "Other"
+        };
+
+        JPanel incomeSourcesPanel = new JPanel();
+        incomeSourcesPanel.setLayout(new BoxLayout(incomeSourcesPanel, BoxLayout.Y_AXIS));
+        incomeSourcesPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        incomeSourcesPanel.setOpaque(false);
+
+        for (String source : incomeSourceOptions) {
+            JCheckBox checkbox = new JCheckBox(source);
+            checkbox.setFont(inputFont);
+            checkbox.setOpaque(false);
+            incomeSourcesPanel.add(checkbox);
+        }
+
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        formPanel.add(incomeSourcesPanel, gbc);
+        currentRow++;
+
+        // Detailed Description of Income Sources ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = currentRow; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JLabel detailedDescriptionLabel = new JLabel("Detailed Description of Income Sources:");
+        detailedDescriptionLabel.setFont(labelFont);
+        formPanel.add(detailedDescriptionLabel, gbc);
+
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextArea detailedDescriptionArea = new JTextArea(3, 20);
+        detailedDescriptionArea.setFont(inputFont);
+        detailedDescriptionArea.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        detailedDescriptionArea.setLineWrap(true);
+        detailedDescriptionArea.setWrapStyleWord(true);
+
+        JScrollPane descriptionScrollPane = new JScrollPane(detailedDescriptionArea);
+        descriptionScrollPane.setPreferredSize(new Dimension(0, 75));
+        formPanel.add(descriptionScrollPane, gbc);
+        currentRow++;
+
+        // Section Header: Purpose of Request ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = currentRow; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.HORIZONTAL;
+        JLabel purposeSectionLabel = new JLabel("Purpose of Request");
+        purposeSectionLabel.setFont(sectionFont);
+        purposeSectionLabel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.BLACK));
+        formPanel.add(purposeSectionLabel, gbc);
+        gbc.gridwidth = 1; // Reset gridwidth
+        currentRow++;
+
+        // Purpose of Certificate ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = currentRow; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JLabel purposeLabel = new JLabel("What is the purpose of this certificate?:");
+        purposeLabel.setFont(labelFont);
+        formPanel.add(purposeLabel, gbc);
+
+        String[] purposeOptions = {
+                "Select the purpose of your request",
+                "Scholarship Application",
+                "Medical Aid/Financial Assistance",
+                "Government Program/Benefits",
+                "Loan Application",
+                "Employment Requirement",
+                "Legal Proceeding",
+                "Others"
+        };
+
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JComboBox<String> purposeCombo = new JComboBox<>(purposeOptions);
+        purposeCombo.setPreferredSize(new Dimension(0, 25));
+        purposeCombo.setFont(inputFont);
+        purposeCombo.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        formPanel.add(purposeCombo, gbc);
+        currentRow++;
+
+        // Specify Purpose ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = currentRow; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JLabel specifyPurposeLabel = new JLabel("Please specify the purpose of your request:");
+        specifyPurposeLabel.setFont(labelFont);
+        formPanel.add(specifyPurposeLabel, gbc);
+
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField specifyPurposeField = new JTextField(20);
+        specifyPurposeField.setPreferredSize(new Dimension(0, 25));
+        specifyPurposeField.setFont(inputFont);
+        specifyPurposeField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        specifyPurposeField.setEnabled(false);
+        specifyPurposeField.setBackground(UIManager.getColor("TextField.inactiveBackground"));
+        ComponentFactory.addPlaceholder(specifyPurposeField, "Specify if 'Others' is selected");
+        formPanel.add(specifyPurposeField, gbc);
+        currentRow++;
+
+        ComponentFactory.setupEducationFieldToggle(purposeCombo, specifyPurposeField, "Specify if 'Others' is selected");
+
+        // Required Documents ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = currentRow; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JLabel requiredDocsLabel = new JLabel("Required Documents:");
+        requiredDocsLabel.setFont(labelFont);
+        formPanel.add(requiredDocsLabel, gbc);
+
+        String[] requiredDocOptions = {
+                "Valid government-issued ID (Driver's License, SSS ID, Postal ID, etc.)",
+                "Proof of income (payslips, certificate of employment, business permit)",
+                "ITR (Income Tax Return) or Certificate of No Income Tax Due",
+                "Bank statements or passbook",
+                "Barangay residency certificate",
+                "Birth certificates of dependents (if applicable)",
+                "Marriage certificate (if applicable)"
+        };
+
+        JPanel requiredDocsPanel = new JPanel();
+        requiredDocsPanel.setLayout(new BoxLayout(requiredDocsPanel, BoxLayout.Y_AXIS));
+        requiredDocsPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        requiredDocsPanel.setOpaque(false);
+
+        for (String doc : requiredDocOptions) {
+            JCheckBox checkbox = new JCheckBox(doc);
+            checkbox.setFont(inputFont);
+            checkbox.setOpaque(false);
+            requiredDocsPanel.add(checkbox);
+        }
+
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        formPanel.add(requiredDocsPanel, gbc);
+
+        return formPanel;
+    }
+
+    //Certificate for No Income Form
+    public static JPanel createNoIncomeCertificateForm(){
+        Font labelFont = new Font("Trebuchet MS", Font.BOLD, 12);
+        Font inputFont = new Font("Trebuchet MS", Font.PLAIN, 12);
+
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        formPanel.setOpaque(false);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.anchor = GridBagConstraints.WEST;
+
+        // === BASIC INFORMATION SECTION ===
+
+        // Certificate Number ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = 0; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JLabel certNumberLabel = new JLabel("Certificate Number:");
+        certNumberLabel.setFont(labelFont);
+        formPanel.add(certNumberLabel, gbc);
+
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField certNumberField = new JTextField(20);
+        certNumberField.setPreferredSize(new Dimension(0, 25));
+        certNumberField.setFont(inputFont);
+        certNumberField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        ComponentFactory.addPlaceholder(certNumberField, "Auto-generated or manual entry");
+        formPanel.add(certNumberField, gbc);
+
+        // Date Issued ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = 1; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JLabel dateIssuedLabel = new JLabel("Date Issued:");
+        dateIssuedLabel.setFont(labelFont);
+        formPanel.add(dateIssuedLabel, gbc);
+
+        // Date panel with combo boxes for date issued
+        JPanel dateIssuedPanel = new JPanel();
+        dateIssuedPanel.setPreferredSize(new Dimension(0, 25));
+        dateIssuedPanel.setFont(inputFont);
+        dateIssuedPanel.setLayout(new BoxLayout(dateIssuedPanel, BoxLayout.X_AXIS));
+        dateIssuedPanel.setOpaque(false);
+
+        JComboBox<String> issuedYearCombo = new JComboBox<>();
+        JComboBox<String> issuedMonthCombo = new JComboBox<>();
+        JComboBox<String> issuedDayCombo = new JComboBox<>();
+
+        issuedYearCombo.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        issuedMonthCombo.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        issuedDayCombo.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+
+        dateIssuedPanel.add(new JLabel("Month:"));
+        dateIssuedPanel.add(Box.createHorizontalStrut(5));
+        dateIssuedPanel.add(issuedMonthCombo);
+        dateIssuedPanel.add(Box.createHorizontalStrut(10));
+
+        dateIssuedPanel.add(new JLabel("Day:"));
+        dateIssuedPanel.add(Box.createHorizontalStrut(5));
+        dateIssuedPanel.add(issuedDayCombo);
+        dateIssuedPanel.add(Box.createHorizontalStrut(10));
+
+        dateIssuedPanel.add(new JLabel("Year:"));
+        dateIssuedPanel.add(Box.createHorizontalStrut(5));
+        dateIssuedPanel.add(issuedYearCombo);
+
+        ComponentFactory.setupDateComboBoxes(issuedYearCombo, issuedMonthCombo, issuedDayCombo);
+
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        formPanel.add(dateIssuedPanel, gbc);
+
+        // Barangay ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = 2; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JLabel barangayLabel = new JLabel("Barangay:");
+        barangayLabel.setFont(labelFont);
+        formPanel.add(barangayLabel, gbc);
+
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField barangayField = new JTextField(20);
+        barangayField.setPreferredSize(new Dimension(0, 25));
+        barangayField.setFont(inputFont);
+        barangayField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        ComponentFactory.addPlaceholder(barangayField, "Enter barangay name");
+        formPanel.add(barangayField, gbc);
+
+        // Municipality/City ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = 3; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JLabel municipalityLabel = new JLabel("Municipality/City:");
+        municipalityLabel.setFont(labelFont);
+        formPanel.add(municipalityLabel, gbc);
+
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField municipalityField = new JTextField(20);
+        municipalityField.setPreferredSize(new Dimension(0, 25));
+        municipalityField.setFont(inputFont);
+        municipalityField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        ComponentFactory.addPlaceholder(municipalityField, "Enter municipality or city");
+        formPanel.add(municipalityField, gbc);
+
+        // Province ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = 4; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JLabel provinceLabel = new JLabel("Province:");
+        provinceLabel.setFont(labelFont);
+        formPanel.add(provinceLabel, gbc);
+
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField provinceField = new JTextField(20);
+        provinceField.setPreferredSize(new Dimension(0, 25));
+        provinceField.setFont(inputFont);
+        provinceField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        ComponentFactory.addPlaceholder(provinceField, "Enter province");
+        formPanel.add(provinceField, gbc);
+
+        // Full Name ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = 5; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JLabel fullNameLabel = new JLabel("Full Name:");
+        fullNameLabel.setFont(labelFont);
+        formPanel.add(fullNameLabel, gbc);
+
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField fullNameField = new JTextField(20);
+        fullNameField.setPreferredSize(new Dimension(0, 25));
+        fullNameField.setFont(inputFont);
+        fullNameField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        ComponentFactory.addPlaceholder(fullNameField, "Last Name, First Name, Middle Initial");
+        formPanel.add(fullNameField, gbc);
+
+        // Date of Birth ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = 6; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JLabel dobLabel = new JLabel("Date of Birth:");
+        dobLabel.setFont(labelFont);
+        formPanel.add(dobLabel, gbc);
+
+        // Date panel with combo boxes for date of birth
+        JPanel dobPanel = new JPanel();
+        dobPanel.setPreferredSize(new Dimension(0, 25));
+        dobPanel.setFont(inputFont);
+        dobPanel.setLayout(new BoxLayout(dobPanel, BoxLayout.X_AXIS));
+        dobPanel.setOpaque(false);
+
+        JComboBox<String> dobYearCombo = new JComboBox<>();
+        JComboBox<String> dobMonthCombo = new JComboBox<>();
+        JComboBox<String> dobDayCombo = new JComboBox<>();
+
+        dobYearCombo.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        dobMonthCombo.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        dobDayCombo.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+
+        dobPanel.add(new JLabel("Month:"));
+        dobPanel.add(Box.createHorizontalStrut(5));
+        dobPanel.add(dobMonthCombo);
+        dobPanel.add(Box.createHorizontalStrut(10));
+
+        dobPanel.add(new JLabel("Day:"));
+        dobPanel.add(Box.createHorizontalStrut(5));
+        dobPanel.add(dobDayCombo);
+        dobPanel.add(Box.createHorizontalStrut(10));
+
+        dobPanel.add(new JLabel("Year:"));
+        dobPanel.add(Box.createHorizontalStrut(5));
+        dobPanel.add(dobYearCombo);
+
+        ComponentFactory.setupDateComboBoxes(dobYearCombo, dobMonthCombo, dobDayCombo);
+
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        formPanel.add(dobPanel, gbc);
+
+        // Age (Auto-calculated) ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = 7; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JLabel ageLabel = new JLabel("Age:");
+        ageLabel.setFont(labelFont);
+        formPanel.add(ageLabel, gbc);
+
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField ageField = new JTextField(20);
+        ageField.setPreferredSize(new Dimension(0, 25));
+        ageField.setFont(inputFont);
+        ageField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        ageField.setEditable(false);
+        ageField.setBackground(UIManager.getColor("TextField.inactiveBackground"));
+        ComponentFactory.addPlaceholder(ageField, "Auto-calculated from Date of Birth");
+        formPanel.add(ageField, gbc);
+
+        // Add action listeners to auto-calculate age when DOB changes
+        ActionListener ageCalculator = e -> ComponentFactory.calculateAge(dobYearCombo, dobMonthCombo, dobDayCombo, ageField);
+        dobYearCombo.addActionListener(ageCalculator);
+        dobMonthCombo.addActionListener(ageCalculator);
+        dobDayCombo.addActionListener(ageCalculator);
+
+        // Complete Address ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = 8; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JLabel addressLabel = new JLabel("Complete Address:");
+        addressLabel.setFont(labelFont);
+        formPanel.add(addressLabel, gbc);
+
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField addressField = new JTextField(20);
+        addressField.setPreferredSize(new Dimension(0, 25));
+        addressField.setFont(inputFont);
+        addressField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        ComponentFactory.addPlaceholder(addressField, "House/Building/Blk/Lot No., Street, Barangay, City/Municipality, Province");
+        formPanel.add(addressField, gbc);
+
+        // === CIVIL STATUS SECTION ===
+
+        // Civil Status ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = 9; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JLabel civilStatusLabel = new JLabel("Civil Status:");
+        civilStatusLabel.setFont(labelFont);
+        formPanel.add(civilStatusLabel, gbc);
+
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+
+        String[] civilStatusOptions = {
+                "Select your civil status",
+                "Single",
+                "Married",
+                "Widowed",
+                "Separated",
+                "Divorced"
+        };
+
+        JComboBox<String> civilStatusCombo = new JComboBox<>(civilStatusOptions);
+        civilStatusCombo.setPreferredSize(new Dimension(0, 25));
+        civilStatusCombo.setFont(inputFont);
+        civilStatusCombo.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        formPanel.add(civilStatusCombo, gbc);
+
+        // === CONFIRMATION OF BEING UNEMPLOYED SECTION ===
+
+        // Current Employment Status ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = 10; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JLabel employmentStatusLabel = new JLabel("Current Employment Status:");
+        employmentStatusLabel.setFont(labelFont);
+        formPanel.add(employmentStatusLabel, gbc);
+
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+
+        JPanel employmentStatusPanel = new JPanel();
+        employmentStatusPanel.setLayout(new BoxLayout(employmentStatusPanel, BoxLayout.Y_AXIS));
+        employmentStatusPanel.setOpaque(false);
+
+        ButtonGroup employmentStatusGroup = new ButtonGroup();
+
+        JRadioButton unemployedRadio = new JRadioButton("I am currently unemployed and have no source of income");
+        unemployedRadio.setFont(inputFont);
+        unemployedRadio.setOpaque(false);
+        employmentStatusGroup.add(unemployedRadio);
+        employmentStatusPanel.add(unemployedRadio);
+
+        JRadioButton neverEmployedRadio = new JRadioButton("I have never been employed and have no source of income");
+        neverEmployedRadio.setFont(inputFont);
+        neverEmployedRadio.setOpaque(false);
+        employmentStatusGroup.add(neverEmployedRadio);
+        employmentStatusPanel.add(neverEmployedRadio);
+
+        JRadioButton studentRadio = new JRadioButton("I am a student with no source of income");
+        studentRadio.setFont(inputFont);
+        studentRadio.setOpaque(false);
+        employmentStatusGroup.add(studentRadio);
+        employmentStatusPanel.add(studentRadio);
+
+        formPanel.add(employmentStatusPanel, gbc);
+
+        // Duration of Unemployment ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = 11; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JLabel durationLabel = new JLabel("Duration of Unemployment:");
+        durationLabel.setFont(labelFont);
+        formPanel.add(durationLabel, gbc);
+
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField durationField = new JTextField(20);
+        durationField.setPreferredSize(new Dimension(0, 25));
+        durationField.setFont(inputFont);
+        durationField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        ComponentFactory.addPlaceholder(durationField, "e.g., 6 months, 1 year, N/A if never employed");
+        formPanel.add(durationField, gbc);
+
+        // Reason for Unemployment ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = 12; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JLabel reasonLabel = new JLabel("Reason for Unemployment:");
+        reasonLabel.setFont(labelFont);
+        formPanel.add(reasonLabel, gbc);
+
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField reasonField = new JTextField(20);
+        reasonField.setPreferredSize(new Dimension(0, 25));
+        reasonField.setFont(inputFont);
+        reasonField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        ComponentFactory.addPlaceholder(reasonField, "Explain reason for unemployment");
+        formPanel.add(reasonField, gbc);
+
+        // === FINANCIAL SUPPORT INFORMATION SECTION ===
+
+        // Financial Support Status ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = 13; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JLabel financialSupportLabel = new JLabel("Are you financially supported by someone?:");
+        financialSupportLabel.setFont(labelFont);
+        formPanel.add(financialSupportLabel, gbc);
+
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+
+        JPanel financialSupportPanel = new JPanel();
+        financialSupportPanel.setLayout(new BoxLayout(financialSupportPanel, BoxLayout.Y_AXIS));
+        financialSupportPanel.setOpaque(false);
+
+        ButtonGroup financialSupportGroup = new ButtonGroup();
+
+        JRadioButton supportedRadio = new JRadioButton("Yes, I am financially supported");
+        supportedRadio.setFont(inputFont);
+        supportedRadio.setOpaque(false);
+        financialSupportGroup.add(supportedRadio);
+        financialSupportPanel.add(supportedRadio);
+
+        JRadioButton notSupportedRadio = new JRadioButton("No, I have no financial support");
+        notSupportedRadio.setFont(inputFont);
+        notSupportedRadio.setOpaque(false);
+        financialSupportGroup.add(notSupportedRadio);
+        financialSupportPanel.add(notSupportedRadio);
+
+        formPanel.add(financialSupportPanel, gbc);
+
+        // === PURPOSE OF REQUEST SECTION ===
+
+        // Purpose of Request ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = 14; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JLabel purposeLabel = new JLabel("What is the purpose of this certificate?:");
+        purposeLabel.setFont(labelFont);
+        formPanel.add(purposeLabel, gbc);
+
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+
+        String[] purposeOptions = {
+                "Job Application",
+                "School Requirement",
+                "Scholarship Application",
+                "Government Program/Benefits",
+                "Legal Requirement",
+                "Financial Assistance Application",
+                "Visa/Travel Application",
+                "Others"
+        };
+
+        JPanel purposePanel = new JPanel();
+        purposePanel.setLayout(new BoxLayout(purposePanel, BoxLayout.Y_AXIS));
+        purposePanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        purposePanel.setOpaque(false);
+
+        for (String text : purposeOptions) {
+            JCheckBox checkbox = new JCheckBox(text);
+            checkbox.setFont(inputFont);
+            checkbox.setOpaque(false);
+            purposePanel.add(checkbox);
+        }
+
+        formPanel.add(purposePanel, gbc);
+
+        // Please specify the purpose ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = 15; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JLabel specifyPurposeLabel = new JLabel("Please specify the purpose:");
+        specifyPurposeLabel.setFont(labelFont);
+        formPanel.add(specifyPurposeLabel, gbc);
+
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField specifyPurposeField = new JTextField();
+        specifyPurposeField.setPreferredSize(new Dimension(0, 25));
+        specifyPurposeField.setFont(inputFont);
+        specifyPurposeField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        ComponentFactory.addPlaceholder(specifyPurposeField, "Specify if 'Others' is selected");
+        formPanel.add(specifyPurposeField, gbc);
+
+        // === REQUIRED DOCUMENTS SECTION ===
+
+        // Required Documents ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = 16; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JLabel requirementsLabel = new JLabel("Required Documents:");
+        requirementsLabel.setFont(labelFont);
+        formPanel.add(requirementsLabel, gbc);
+
+        String[] requirementOptions = {
+                "Valid government-issued ID (Driver's License, SSS ID, Postal ID, etc.)",
+                "Birth Certificate (PSA-issued)",
+                "Barangay Residency Certificate",
+                "Marriage Certificate (if married)",
+                "School enrollment certificate (if student)",
+                "Affidavit of Support (if financially supported by someone)"
+        };
+
+        JPanel requirementsPanel = new JPanel();
+        requirementsPanel.setLayout(new BoxLayout(requirementsPanel, BoxLayout.Y_AXIS));
+        requirementsPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        requirementsPanel.setOpaque(false);
+
+        for (String text : requirementOptions) {
+            JCheckBox checkbox = new JCheckBox(text);
+            checkbox.setFont(inputFont);
+            checkbox.setOpaque(false);
+            requirementsPanel.add(checkbox);
+        }
+
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        formPanel.add(requirementsPanel, gbc);
+
+        return formPanel;
+    }
+
+    //Certificate for State Tax Certificate Form
+    public static JPanel createStateTaxCertificateForm(){
+        Font labelFont = new Font("Trebuchet MS", Font.BOLD, 12);
+        Font inputFont = new Font("Trebuchet MS", Font.PLAIN, 12);
+
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        formPanel.setOpaque(false);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.anchor = GridBagConstraints.WEST;
+
+        // Certificate Number ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = 0; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JLabel certNumberLabel = new JLabel("Certificate Number:");
+        certNumberLabel.setFont(labelFont);
+        formPanel.add(certNumberLabel, gbc);
+
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField certNumberField = new JTextField(20);
+        certNumberField.setPreferredSize(new Dimension(0, 25));
+        certNumberField.setFont(inputFont);
+        certNumberField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        certNumberField.setEditable(false); // Auto-generated
+        certNumberField.setBackground(UIManager.getColor("TextField.inactiveBackground"));
+        ComponentFactory.addPlaceholder(certNumberField, "Auto-generated upon processing");
+        formPanel.add(certNumberField, gbc);
+
+        // Date Issued ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = 1; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JLabel dateIssuedLabel = new JLabel("Date Issued:");
+        dateIssuedLabel.setFont(labelFont);
+        formPanel.add(dateIssuedLabel, gbc);
+
+        // Date panel with combo boxes for date issued
+        JPanel dateIssuedPanel = new JPanel();
+        dateIssuedPanel.setPreferredSize(new Dimension(0, 25));
+        dateIssuedPanel.setFont(inputFont);
+        dateIssuedPanel.setLayout(new BoxLayout(dateIssuedPanel, BoxLayout.X_AXIS));
+        dateIssuedPanel.setOpaque(false);
+
+        JComboBox<String> issuedYearCombo = new JComboBox<>();
+        JComboBox<String> issuedMonthCombo = new JComboBox<>();
+        JComboBox<String> issuedDayCombo = new JComboBox<>();
+
+        issuedYearCombo.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        issuedMonthCombo.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        issuedDayCombo.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+
+        dateIssuedPanel.add(new JLabel("Month:"));
+        dateIssuedPanel.add(Box.createHorizontalStrut(5));
+        dateIssuedPanel.add(issuedMonthCombo);
+        dateIssuedPanel.add(Box.createHorizontalStrut(10));
+
+        dateIssuedPanel.add(new JLabel("Day:"));
+        dateIssuedPanel.add(Box.createHorizontalStrut(5));
+        dateIssuedPanel.add(issuedDayCombo);
+        dateIssuedPanel.add(Box.createHorizontalStrut(10));
+
+        dateIssuedPanel.add(new JLabel("Year:"));
+        dateIssuedPanel.add(Box.createHorizontalStrut(5));
+        dateIssuedPanel.add(issuedYearCombo);
+
+        // Initialize date issued combo boxes
+        ComponentFactory.setupDateComboBoxes(issuedYearCombo, issuedMonthCombo, issuedDayCombo);
+
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        formPanel.add(dateIssuedPanel, gbc);
+
+        // Barangay ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = 2; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JLabel barangayLabel = new JLabel("Barangay:");
+        barangayLabel.setFont(labelFont);
+        formPanel.add(barangayLabel, gbc);
+
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField barangayField = new JTextField(20);
+        barangayField.setPreferredSize(new Dimension(0, 25));
+        barangayField.setFont(inputFont);
+        barangayField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        ComponentFactory.addPlaceholder(barangayField, "Enter your barangay");
+        formPanel.add(barangayField, gbc);
+
+        // Municipality/City ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = 3; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JLabel municipalityLabel = new JLabel("Municipality/City:");
+        municipalityLabel.setFont(labelFont);
+        formPanel.add(municipalityLabel, gbc);
+
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField municipalityField = new JTextField(20);
+        municipalityField.setPreferredSize(new Dimension(0, 25));
+        municipalityField.setFont(inputFont);
+        municipalityField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        ComponentFactory.addPlaceholder(municipalityField, "Enter your municipality or city");
+        formPanel.add(municipalityField, gbc);
+
+        // Province ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = 4; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JLabel provinceLabel = new JLabel("Province:");
+        provinceLabel.setFont(labelFont);
+        formPanel.add(provinceLabel, gbc);
+
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField provinceField = new JTextField(20);
+        provinceField.setPreferredSize(new Dimension(0, 25));
+        provinceField.setFont(inputFont);
+        provinceField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        ComponentFactory.addPlaceholder(provinceField, "Enter your province");
+        formPanel.add(provinceField, gbc);
+
+        // Full Name ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = 5; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JLabel fullNameLabel = new JLabel("Full Name:");
+        fullNameLabel.setFont(labelFont);
+        formPanel.add(fullNameLabel, gbc);
+
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField fullNameField = new JTextField(20);
+        fullNameField.setPreferredSize(new Dimension(0, 25));
+        fullNameField.setFont(inputFont);
+        fullNameField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        ComponentFactory.addPlaceholder(fullNameField, "Last Name, First Name, Middle Initial");
+        formPanel.add(fullNameField, gbc);
+
+        // Complete Address ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = 6; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JLabel addressLabel = new JLabel("Complete Address:");
+        addressLabel.setFont(labelFont);
+        formPanel.add(addressLabel, gbc);
+
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField addressField = new JTextField(20);
+        addressField.setPreferredSize(new Dimension(0, 25));
+        addressField.setFont(inputFont);
+        addressField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        ComponentFactory.addPlaceholder(addressField, "House/Building/Blk/Lot No., Street, Barangay, City/Municipality, Province");
+        formPanel.add(addressField, gbc);
+
+        // Tax Computation Section Header ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = 7; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0; gbc.gridwidth = 2;
+        JLabel taxComputationHeaderLabel = new JLabel("TAX COMPUTATION");
+        taxComputationHeaderLabel.setFont(new Font("Trebuchet MS", Font.BOLD, 14));
+        formPanel.add(taxComputationHeaderLabel, gbc);
+        gbc.gridwidth = 1; // Reset gridwidth
+
+        // Basic Community Tax ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = 8; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JLabel basicTaxLabel = new JLabel("Basic Community Tax:");
+        basicTaxLabel.setFont(labelFont);
+        formPanel.add(basicTaxLabel, gbc);
+
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField basicTaxField = new JTextField(20);
+        basicTaxField.setPreferredSize(new Dimension(0, 25));
+        basicTaxField.setFont(inputFont);
+        basicTaxField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        basicTaxField.setEditable(false);
+        basicTaxField.setText("₱5.00");
+        basicTaxField.setBackground(UIManager.getColor("TextField.inactiveBackground"));
+        ComponentFactory.addPlaceholder(basicTaxField, "Fixed amount for all citizens of ₱5");
+        formPanel.add(basicTaxField, gbc);
+
+        // Gross Receipts/Earnings ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = 9; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JLabel grossReceiptsLabel = new JLabel("Gross Receipts/Earnings (Annual):");
+        grossReceiptsLabel.setFont(labelFont);
+        formPanel.add(grossReceiptsLabel, gbc);
+
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField grossReceiptsField = new JTextField(20);
+        grossReceiptsField.setPreferredSize(new Dimension(0, 25));
+        grossReceiptsField.setFont(inputFont);
+        grossReceiptsField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        ComponentFactory.addPlaceholder(grossReceiptsField, "Enter your total annual income from all sources");
+        formPanel.add(grossReceiptsField, gbc);
+
+        // Real Property Owned ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = 10; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JLabel realPropertyLabel = new JLabel("Real Property Owned (Assessed Value):");
+        realPropertyLabel.setFont(labelFont);
+        formPanel.add(realPropertyLabel, gbc);
+
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField realPropertyField = new JTextField(20);
+        realPropertyField.setPreferredSize(new Dimension(0, 25));
+        realPropertyField.setFont(inputFont);
+        realPropertyField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        ComponentFactory.addPlaceholder(realPropertyField, "Enter the total assessed value of all real properties you own");
+        formPanel.add(realPropertyField, gbc);
+
+        // Tax Computation Breakdown Section Header ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = 11; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0; gbc.gridwidth = 2;
+        JLabel breakdownHeaderLabel = new JLabel("TAX COMPUTATION BREAKDOWN");
+        breakdownHeaderLabel.setFont(new Font("Trebuchet MS", Font.BOLD, 14));
+        formPanel.add(breakdownHeaderLabel, gbc);
+        gbc.gridwidth = 1; // Reset gridwidth
+
+        // Basic Community Tax Breakdown ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = 12; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JLabel basicTaxBreakdownLabel = new JLabel("Basic Community Tax:");
+        basicTaxBreakdownLabel.setFont(labelFont);
+        formPanel.add(basicTaxBreakdownLabel, gbc);
+
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField basicTaxBreakdownField = new JTextField(20);
+        basicTaxBreakdownField.setPreferredSize(new Dimension(0, 25));
+        basicTaxBreakdownField.setFont(inputFont);
+        basicTaxBreakdownField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        basicTaxBreakdownField.setEditable(false);
+        basicTaxBreakdownField.setText("₱5.00");
+        basicTaxBreakdownField.setBackground(UIManager.getColor("TextField.inactiveBackground"));
+        formPanel.add(basicTaxBreakdownField, gbc);
+
+        // Additional Tax on Income ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = 13; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JLabel additionalIncomeLabel = new JLabel("Additional Tax on Income (₱1 per ₱1,000):");
+        additionalIncomeLabel.setFont(labelFont);
+        formPanel.add(additionalIncomeLabel, gbc);
+
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField additionalIncomeField = new JTextField(20);
+        additionalIncomeField.setPreferredSize(new Dimension(0, 25));
+        additionalIncomeField.setFont(inputFont);
+        additionalIncomeField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        additionalIncomeField.setEditable(false);
+        additionalIncomeField.setBackground(UIManager.getColor("TextField.inactiveBackground"));
+        ComponentFactory.addPlaceholder(additionalIncomeField, "Auto-calculated from gross receipts");
+        formPanel.add(additionalIncomeField, gbc);
+
+        // Additional Tax on Property ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = 14; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JLabel additionalPropertyLabel = new JLabel("Additional Tax on Property (₱1 per ₱1,000):");
+        additionalPropertyLabel.setFont(labelFont);
+        formPanel.add(additionalPropertyLabel, gbc);
+
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField additionalPropertyField = new JTextField(20);
+        additionalPropertyField.setPreferredSize(new Dimension(0, 25));
+        additionalPropertyField.setFont(inputFont);
+        additionalPropertyField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        additionalPropertyField.setEditable(false);
+        additionalPropertyField.setBackground(UIManager.getColor("TextField.inactiveBackground"));
+        ComponentFactory.addPlaceholder(additionalPropertyField, "Auto-calculated from property value");
+        formPanel.add(additionalPropertyField, gbc);
+
+        // Total Amount to Pay ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = 15; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JLabel totalAmountLabel = new JLabel("Total Amount to Pay:");
+        totalAmountLabel.setFont(new Font("Trebuchet MS", Font.BOLD, 14));
+        formPanel.add(totalAmountLabel, gbc);
+
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        JTextField totalAmountField = new JTextField(20);
+        totalAmountField.setPreferredSize(new Dimension(0, 25));
+        totalAmountField.setFont(new Font("Trebuchet MS", Font.BOLD, 14));
+        totalAmountField.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
+        totalAmountField.setEditable(false);
+        totalAmountField.setBackground(UIManager.getColor("TextField.inactiveBackground"));
+        ComponentFactory.addPlaceholder(totalAmountField, "Total computed tax amount");
+        formPanel.add(totalAmountField, gbc);
+
+        // Add calculation listeners for automatic computation
+        DocumentListener calculationListener = new DocumentListener() {
+            public void insertUpdate(DocumentEvent e) { calculateTax(); }
+            public void removeUpdate(DocumentEvent e) { calculateTax(); }
+            public void changedUpdate(DocumentEvent e) { calculateTax(); }
+
+            private void calculateTax() {
+                try {
+                    // Parse gross receipts
+                    String grossText = grossReceiptsField.getText().replaceAll("[₱,]", "");
+                    double grossReceipts = grossText.isEmpty() ? 0 : Double.parseDouble(grossText);
+
+                    // Parse property value
+                    String propertyText = realPropertyField.getText().replaceAll("[₱,]", "");
+                    double propertyValue = propertyText.isEmpty() ? 0 : Double.parseDouble(propertyText);
+
+                    // Calculate additional taxes
+                    double additionalIncome = Math.floor(grossReceipts / 1000);
+                    double additionalProperty = Math.floor(propertyValue / 1000);
+                    double total = 5.00 + additionalIncome + additionalProperty;
+
+                    // Update fields
+                    additionalIncomeField.setText(String.format("₱%.2f", additionalIncome));
+                    additionalPropertyField.setText(String.format("₱%.2f", additionalProperty));
+                    totalAmountField.setText(String.format("₱%.2f", total));
+
+                } catch (NumberFormatException ex) {
+                    // Handle invalid input gracefully
+                    additionalIncomeField.setText("₱0.00");
+                    additionalPropertyField.setText("₱0.00");
+                    totalAmountField.setText("₱5.00");
+                }
+            }
+        };
+
+        grossReceiptsField.getDocument().addDocumentListener(calculationListener);
+        realPropertyField.getDocument().addDocumentListener(calculationListener);
+
+        // Required Documents (Checkbox) ------------------------------------------------------------------------------------
+        gbc.gridx = 0; gbc.gridy = 16; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JLabel requirementsLabel = new JLabel("Required Documents:");
+        requirementsLabel.setFont(labelFont);
+        formPanel.add(requirementsLabel, gbc);
+
+        String[] requirementOptions = {
+                "Valid government-issued ID (Driver's License, SSS ID, Postal ID, etc.)",
+                "Proof of income (Certificate of Employment, ITR, Business Permit, etc.)",
+                "Tax Declaration of Real Property (if applicable)",
+                "Previous year's Community Tax Certificate (if available)",
+                "Barangay Certificate of Residency"
+        };
+
+        JPanel requirementsPanel = new JPanel();
+        requirementsPanel.setLayout(new BoxLayout(requirementsPanel, BoxLayout.Y_AXIS));
+        requirementsPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        requirementsPanel.setOpaque(false);
+
+        for (String text : requirementOptions) {
+            JCheckBox checkbox = new JCheckBox(text);
+            checkbox.setFont(inputFont);
+            checkbox.setOpaque(false);
+            requirementsPanel.add(checkbox);
+        }
+
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        formPanel.add(requirementsPanel, gbc);
+
+        return formPanel;
+    }
 
 
     public static JPanel createCommonFields() {
