@@ -10,9 +10,12 @@ import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
 import main.ApplicationConstants;
 
@@ -195,7 +198,7 @@ public class ComponentFactory {
                         !selectedYear.equals("Year") && !selectedMonth.equals("Month") && !selectedDay.equals("Day")) {
 
                     int year = Integer.parseInt(selectedYear);
-                    int month = Integer.parseInt(selectedMonth);
+                    int month = Month.valueOf(selectedMonth.toUpperCase()).getValue();
                     int day = Integer.parseInt(selectedDay);
 
                     Calendar today = Calendar.getInstance();
@@ -252,39 +255,159 @@ public class ComponentFactory {
         propertyIncomeField.getDocument().addDocumentListener(calculationListener);
     }
 
+    // Helper method to create a date picker panel
+    public static JPanel createDatePickerPanel(Font inputFont) {
+        JPanel datePanel = new JPanel();
+        datePanel.setPreferredSize(new Dimension(0, 25));
+        datePanel.setFont(inputFont);
+        datePanel.setLayout(new BoxLayout(datePanel, BoxLayout.X_AXIS));
+        datePanel.setOpaque(false);
 
-    public static void setupEducationFieldToggle(JComboBox<String> comboBox, JTextField specifyField, String placeholderText) {
-        comboBox.addActionListener(e -> {
-            boolean isOthers = "Others".equals(comboBox.getSelectedItem());
-            specifyField.setEnabled(isOthers);
+        JComboBox<String> yearCombo = new JComboBox<>();
+        JComboBox<String> monthCombo = new JComboBox<>();
+        JComboBox<String> dayCombo = new JComboBox<>();
 
-            if (isOthers) {
-                // Field is enabled - set normal background
-                specifyField.setBackground(UIManager.getColor("TextField.background"));
-            } else {
-                // Field is disabled - set inactive background and clear text
-                specifyField.setText("");
-                specifyField.setBackground(UIManager.getColor("TextField.inactiveBackground"));
-                ComponentFactory.addPlaceholder(specifyField, placeholderText);
+        yearCombo.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        monthCombo.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        dayCombo.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+
+        datePanel.add(new JLabel("Month:"));
+        datePanel.add(Box.createHorizontalStrut(5));
+        datePanel.add(monthCombo);
+        datePanel.add(Box.createHorizontalStrut(10));
+
+        datePanel.add(new JLabel("Day:"));
+        datePanel.add(Box.createHorizontalStrut(5));
+        datePanel.add(dayCombo);
+        datePanel.add(Box.createHorizontalStrut(10));
+
+        datePanel.add(new JLabel("Year:"));
+        datePanel.add(Box.createHorizontalStrut(5));
+        datePanel.add(yearCombo);
+
+        LocalDate today = LocalDate.now();
+        int currentYear = today.getYear();
+        int currentMonth = today.getMonthValue();
+        int currentDay = today.getDayOfMonth();
+
+        // Month names array
+        String[] monthNames = {
+                "January", "February", "March", "April", "May", "June",
+                "July", "August", "September", "October", "November", "December"
+        };
+
+        // Populate years (last 100 years)
+        String[] years = new String[100];
+        for (int i = 0; i < 100; i++) {
+            years[i] = String.valueOf(currentYear - i);
+        }
+        yearCombo.setModel(new DefaultComboBoxModel<>(years));
+
+        // Define update methods
+        Runnable updateDays = () -> {
+            if (yearCombo.getSelectedItem() == null || monthCombo.getSelectedItem() == null) return;
+
+            dayCombo.removeAllItems();
+            int selectedYear = Integer.parseInt((String) yearCombo.getSelectedItem());
+
+            // Convert month name back to number
+            String selectedMonthName = (String) monthCombo.getSelectedItem();
+            int selectedMonth = -1;
+            for (int i = 0; i < monthNames.length; i++) {
+                if (monthNames[i].equals(selectedMonthName)) {
+                    selectedMonth = i + 1;
+                    break;
+                }
             }
-        });
+
+            if (selectedMonth == -1) return; // Invalid month name
+
+            YearMonth yearMonth = YearMonth.of(selectedYear, selectedMonth);
+            int daysInMonth = yearMonth.lengthOfMonth();
+            int maxDay = (selectedYear == currentYear && selectedMonth == currentMonth)
+                    ? Math.min(currentDay, daysInMonth)
+                    : daysInMonth;
+
+            for (int i = 1; i <= maxDay; i++) {
+                dayCombo.addItem(String.format("%02d", i));
+            }
+        };
+
+        Runnable updateMonths = () -> {
+            if (yearCombo.getSelectedItem() == null) return;
+
+            monthCombo.removeAllItems();
+            int selectedYear = Integer.parseInt((String) yearCombo.getSelectedItem());
+            int maxMonth = (selectedYear == currentYear) ? currentMonth : 12;
+
+            for (int i = 1; i <= maxMonth; i++) {
+                monthCombo.addItem(monthNames[i - 1]);
+            }
+
+            updateDays.run();
+        };
+
+        // Set listeners
+        yearCombo.addActionListener(e -> updateMonths.run());
+        monthCombo.addActionListener(e -> updateDays.run());
+
+        // Trigger initial setup
+        updateMonths.run();
+
+        return datePanel;
     }
 
-    // Helper method for radio button toggle
-    public static void setupRadioToggleBehavior(JRadioButton yesButton, JRadioButton noButton, JTextComponent targetField, String placeholderText) {
-        yesButton.addActionListener(e -> {
-            targetField.setEnabled(true);
-            targetField.setBackground(UIManager.getColor("TextField.background"));
-        });
-
-        noButton.addActionListener(e -> {
-            targetField.setText("");
-            targetField.setEnabled(false);
-            targetField.setBackground(UIManager.getColor("TextField.inactiveBackground"));
-            ComponentFactory.addPlaceholder(targetField, placeholderText);
-        });
+    public static JComboBox<String> findComboBoxInPanel(JPanel panel, int occurrence) {
+        int count = 0;
+        for (Component comp : panel.getComponents()) {
+            if (comp instanceof JComboBox<?>) {
+                if (count == occurrence) return (JComboBox<String>) comp;
+                count++;
+            }
+        }
+        return null;
     }
 
+    public static LocalDate extractDateFromPanel(JPanel datePanel) {
+        JComboBox<String> monthCombo = findComboBoxInPanel(datePanel, 0);
+        JComboBox<String> dayCombo = findComboBoxInPanel(datePanel, 1);
+        JComboBox<String> yearCombo = findComboBoxInPanel(datePanel, 2);
+
+        if (monthCombo == null || dayCombo == null || yearCombo == null) return null;
+
+        String monthName = (String) monthCombo.getSelectedItem();
+        String[] monthNames = {
+                "January", "February", "March", "April", "May", "June",
+                "July", "August", "September", "October", "November", "December"
+        };
+
+        int month = -1;
+        for (int i = 0; i < monthNames.length; i++) {
+            if (monthNames[i].equals(monthName)) {
+                month = i + 1;
+                break;
+            }
+        }
+
+        int day = Integer.parseInt((String) dayCombo.getSelectedItem());
+        int year = Integer.parseInt((String) yearCombo.getSelectedItem());
+
+        return LocalDate.of(year, month, day);
+    }
+
+    public static List<String> getSelectedCheckboxes(JPanel containerPanel) {
+        List<String> selected = new ArrayList<>();
+        for (Component comp : containerPanel.getComponents()) {
+            if (comp instanceof JPanel) {
+                for (Component innerComp : ((JPanel) comp).getComponents()) {
+                    if (innerComp instanceof JCheckBox checkbox && checkbox.isSelected()) {
+                        selected.add(checkbox.getText().replaceAll("(?i)<.*?>", "")); // remove HTML tags
+                    }
+                }
+            }
+        }
+        return selected;
+    }
 
 
 }
