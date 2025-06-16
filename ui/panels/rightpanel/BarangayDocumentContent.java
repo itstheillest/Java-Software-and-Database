@@ -1,5 +1,7 @@
 package ui.panels.rightpanel;
 
+import data.DAO.BailCertificateDAO;
+import data.Models.BailCertificate;
 import main.ApplicationConstants;
 import utils.ComponentFactory;
 import ui.forms.DocumentFactory;
@@ -9,6 +11,8 @@ import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.time.LocalDate;
+import java.util.List;
 
 public class BarangayDocumentContent {
     // ==================== FIELDS ====================
@@ -304,11 +308,32 @@ public class BarangayDocumentContent {
             button.setBorderPainted(false);
             button.setOpaque(false); // Important for custom painting
 
-            // Add action listener for the Back button
-            if (label.equals("Document Types")) {
-                button.addActionListener(e -> switchToDocumentTypeSelection());
-            }
-            // You can add other button actions here
+            // Add action listener using switch statement
+            button.addActionListener(e -> {
+                switch (label) {
+                    case "Add New Data":
+                        addStudent();
+                        break;
+                    case "Update Data":
+                        //handleUpdateData();
+                        break;
+                    case "Delete Data":
+                        //handleDeleteData();
+                        break;
+                    case "Clear Form":
+                        //handleClearForm();
+                        break;
+                    case "Print Document":
+                        //handlePrintDocument();
+                        break;
+                    case "Document Types":
+                        switchToDocumentTypeSelection();
+                        break;
+                    default:
+                        System.out.println("Unknown action: " + label);
+                        break;
+                }
+            });
 
             crudLayout.add(button);
         }
@@ -415,28 +440,28 @@ public class BarangayDocumentContent {
                 dynamicFormContainer.add(DocumentFactory.createBusinessClosureForm(), BorderLayout.NORTH);
                 break;
             case "Certificate for Calamity (Disaster)":
-                dynamicFormContainer.add(DocumentFactory.createCalamityForm(), BorderLayout.CENTER);
+                dynamicFormContainer.add(DocumentFactory.createCalamityCertificateForm(), BorderLayout.NORTH);
                 break;
             case "Certificate for No Objection (for Building Construction)":
-                dynamicFormContainer.add(DocumentFactory.createNoObjectionForm(), BorderLayout.CENTER);
+                dynamicFormContainer.add(DocumentFactory.createNoObjectionForm(), BorderLayout.NORTH);
                 break;
             case "Certificate for PWD's":
-                // Will be implemented in next batch
+                dynamicFormContainer.add(DocumentFactory.createPWDCertificateForm(), BorderLayout.NORTH);
                 break;
             case "Certificate for Senior Citizens":
-                // Will be implemented in next batch
+                dynamicFormContainer.add(DocumentFactory.createSeniorCitizensForm(), BorderLayout.NORTH);
                 break;
             case "Certificate for Solo Parent":
                 dynamicFormContainer.add(DocumentFactory.createSoloParentForm(), BorderLayout.NORTH);
                 break;
             case "Certificate of Good Moral Character":
-                // Will be implemented in next batch
+                dynamicFormContainer.add(DocumentFactory.createGoodMoralCharacterForm(), BorderLayout.NORTH);
                 break;
             case "Certificate of Indigency":
-                dynamicFormContainer.add(DocumentFactory.createBusinessClearanceForm(), BorderLayout.CENTER);
+                dynamicFormContainer.add(DocumentFactory.createIndigencyForm(), BorderLayout.NORTH);
                 break;
             case "Certificate of Residency":
-                dynamicFormContainer.add(DocumentFactory.createsCommunityTaxCertificateForm(), BorderLayout.NORTH);
+                dynamicFormContainer.add(DocumentFactory.createResidencyForm(), BorderLayout.NORTH);
                 break;
             case "Community Tax Certificate (Cedula)":
                 dynamicFormContainer.add(DocumentFactory.createCommunityTaxCertificateForm(), BorderLayout.NORTH);
@@ -454,7 +479,7 @@ public class BarangayDocumentContent {
                 dynamicFormContainer.add(DocumentFactory.createNoIncomeCertificateForm(), BorderLayout.NORTH);
                 break;
             case "State Tax Certificate":
-                dynamicFormContainer.add(DocumentFactory.createStateTaxCertificateForm(), BorderLayout.NORTH);
+                dynamicFormContainer.add(DocumentFactory.createTaxExemptionForm(), BorderLayout.NORTH);
                 break;
             default:
                 JLabel instructionLabel = new JLabel("Please select a document type to display the form");
@@ -514,4 +539,81 @@ public class BarangayDocumentContent {
         dynamicRecordsContainer.revalidate();
         dynamicRecordsContainer.repaint();
     }
+
+    private void addStudent() {
+        try {
+            // Get the document information
+            String certNumber = findTextField("certNumberField").getText().trim();
+            JPanel dateFilingPanel = findPanel("dateFilingField");
+            LocalDate dateFiling = ComponentFactory.extractDateFromPanel(dateFilingPanel);
+            JPanel dateIssuedPanel = findPanel("dateIssuedField");
+            LocalDate dateIssued = ComponentFactory.extractDateFromPanel(dateIssuedPanel);
+            String documentStatus = (String) findComboBox("documentStatusCombo").getSelectedItem();
+
+            // Get the personal information
+            String fullname = findTextField("fullNameField").getText().trim();
+            JPanel dobPanel = findPanel("dobPanel");
+            LocalDate dob = ComponentFactory.extractDateFromPanel(dobPanel);
+            int age = Integer.parseInt(findTextField("ageField").getText().trim());
+            String address = findTextField("addressField").getText().trim();
+            String contact = findTextField("contactField").getText().trim();
+
+            // Get the specific document information
+            String natureOfCase = findTextField("natureOfCaseField").getText().trim();
+            String caseNumber = findTextField("caseNumberField").getText().trim();
+            String courtPoliceStation = findTextField("courtPoliceStationField").getText().trim();
+            JPanel dateBailPostedPanel = findPanel("dateBailPosted");
+            LocalDate dateBailPosted = ComponentFactory.extractDateFromPanel(dateBailPostedPanel);
+
+            BailCertificate newCertificate = new BailCertificate(certNumber, dateFiling, dateIssued, documentStatus,
+                    fullname, dob, age, address, contact, natureOfCase, caseNumber, courtPoliceStation, dateBailPosted);
+
+            // Get the document checkbox
+            JPanel documentsPanel = findPanel("documentsToPresentSection");
+            List<String> selectedDocuments = ComponentFactory.getSelectedCheckboxes(documentsPanel);
+            newCertificate.setDocumentsToPresent(selectedDocuments);
+
+            BailCertificateDAO.insert(newCertificate);
+
+        } catch (Exception e) {
+            e.printStackTrace(); // Print the error in the console
+            JOptionPane.showMessageDialog(null, "Error adding student:\n" + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+
+    private Component findComponentByName(String name) {
+        return findComponentByName(dynamicFormContainer, name);
+    }
+
+    // Recursive helper method to find component by name
+    private Component findComponentByName(Container container, String name) {
+        for (Component component : container.getComponents()) {
+            if (name.equals(component.getName())) {
+                return component;
+            }
+            if (component instanceof Container) {
+                Component found = findComponentByName((Container) component, name);
+                if (found != null) {
+                    return found;
+                }
+            }
+        }
+        return null;
+    }
+
+    // Then your finder methods become:
+    private JTextField findTextField(String name) {
+        return (JTextField) findComponentByName(name);
+    }
+
+    private JComboBox<String> findComboBox(String name) {
+        return (JComboBox<String>) findComponentByName(name);
+    }
+
+    private JPanel findPanel(String name) {
+        return (JPanel) findComponentByName(name);
+    }
+
+
 }
