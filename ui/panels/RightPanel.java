@@ -121,7 +121,24 @@ public class RightPanel{
 
     //public JPanel createFileComplaintContent(){}
 
-    //public JPanel createBarangayTanodRecordsContent(){}
+    //calls tanod sched and report
+    public JPanel createTanodScheduleAndReportContent (String title)
+    {
+        JPanel scheduleReportPanel = mainFrame.createTransStyledPanel();
+        scheduleReportPanel.setLayout(new BorderLayout(10, 10));
+        scheduleReportPanel.setOpaque(false);
+
+        // Instantiate your header handler (tanodScheduleAndReport)
+        tanodScheduleAndReport schedulePanelCreator = new tanodScheduleAndReport(mainFrame);
+
+        // Get the right Panel that would show the 3 buttons
+        JPanel rightPanelTanodBtns = schedulePanelCreator.getRightPanelTanod();
+
+        // Add to the main container
+        scheduleReportPanel.add(rightPanelTanodBtns, BorderLayout.CENTER);
+
+        return scheduleReportPanel;
+    }
 
     //public JPanel createHealthSystemRecordsContent(){}
 
