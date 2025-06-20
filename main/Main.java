@@ -123,6 +123,12 @@ public class Main extends JFrame {
         return StyledPanel.create();
     }
 
+    public static JPanel createTransStyledPanel()
+    {
+        return transparentStyledPanel.create();
+    }
+    
+
     public void handleMenuSelection(String menuItem) {
         // Delegate to MenuActionHandler
         menuActionHandler.handleMenuSelection(menuItem);
