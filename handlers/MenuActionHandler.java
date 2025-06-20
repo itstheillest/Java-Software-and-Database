@@ -31,7 +31,7 @@ public class MenuActionHandler {
 
     public void handleMenuAction(String menuItem, ActionEvent e) {
         // When menu item is clicked, show content with background still visible
-        slideshowHandler.pauseSlideshow();
+        //slideshowHandler.pauseSlideshow(); 
 
         rightPanel.removeAll();
 
@@ -53,9 +53,10 @@ public class MenuActionHandler {
                 createGenericContent(menuItem);
                 break;
 
-            case "barangay tanod records":
+            case "barangay tanod schedule and report":
                 //Insert code here
-                createGenericContent(menuItem);
+                JPanel software4Content = rightPanelManager.createTanodScheduleAndReportContent("Barangay Tanod Schedule and Report");
+                rightPanel.add(software4Content, BorderLayout.CENTER);;
                 break;
 
             case "health system records":
