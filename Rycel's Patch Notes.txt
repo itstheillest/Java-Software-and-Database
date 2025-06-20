@@ -1,1 +1,16 @@
 Rycel's Patch Notes:
+
+DocumentFactory.java 
+	- Updated forms
+BarangayDocumentContent.java 
+	- addstudent() method
+	- findComponentByName() method
+	- findTextField() method
+	- findComboBox() method
+	- findPanel() method
+ComponentFactory.java
+	- createDatePickerPanel()
+	- findComboBoxInPanel()
+	- extractDateFromPanel()
+	- getSelectedCheckboxes()
+Whole data folder
