@@ -91,6 +91,8 @@ public class AboutContent {
                 "   • Content is displayed with readable overlays\n\n" +
                 "4. System Requirements:\n" +
                 "   • Java Runtime Environment 8 or higher\n" +
+                "   • Intel i5 8th Gen and above or AMD Ryzen 5 2000 G-series and above\n" +
+                "   • Intel UHD Graphics or Ryzen Vega Graphics\n" +
                 "   • Minimum screen resolution: 1024x768\n" +
                 "   • Images folder with slideshow pictures (optional)";
     }
