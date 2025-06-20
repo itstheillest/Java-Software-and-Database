@@ -1,0 +1,11 @@
+MJ's Patch notes
+
+1.	added tanodScheduleAndReport,java
+2.	added some codes needed for tanodScheduleAndReport in ComponentFactory.java
+3.	changed some about.java details
+4.	removed pause slideshow (pls adjust the speed)
+5.	added createTransStyledPanel in Main,java
+6.	created transparentStyledPanel under "ui" folder
+7.	added a code in MenuActionHandler to call tanodScheduleAndReport when the button is clicked
+8.	added a code to call tanodScheduleAndReport in "RIghtPanel" < "panels" < "ui"
+9.	
