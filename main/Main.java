@@ -3,6 +3,7 @@ package main;
 import ui.panels.LeftPanel;
 import ui.panels.RightPanel;
 import ui.components.StyledPanel;
+import ui.components.transparentStyledPanel;
 import handlers.SlideshowHandler;
 import handlers.MenuActionHandler;
 import utils.ComponentFactory;
