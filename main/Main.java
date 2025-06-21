@@ -119,7 +119,7 @@ public class Main extends JFrame {
         });
     }
 
-    public JPanel createStyledPanel() {
+    public static JPanel createStyledPanel() {
         // Delegate to StyledPanel component
         return StyledPanel.create();
     }
