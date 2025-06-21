@@ -3,6 +3,7 @@ package ui.panels;
 import main.Main;
 import ui.panels.rightpanel.BarangayDocumentContent;
 import ui.panels.rightpanel.DashboardContent;
+import ui.panels.rightpanel.tanodScheduleAndReport;
 import ui.panels.rightpanel.FileComplaintContent;
 import ui.panels.rightpanel.AboutContent;
 import utils.ComponentFactory;

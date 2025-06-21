@@ -41,6 +41,7 @@ public class StyledPanel extends JPanel {
     }
 
 
+
     // Static factory method to create a new StyledPanel with specified layout
     public static StyledPanel create(LayoutManager layout) {
         return new StyledPanel(layout);
