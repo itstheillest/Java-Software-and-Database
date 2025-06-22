@@ -523,10 +523,10 @@ public class ComponentFactory {
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
         buttonPanel.setOpaque(false);
 
-        RoundedButton addTeamBtn = new RoundedButton("Add Team", 30, new Color(0,123,255), Color.WHITE);
-        RoundedButton addMemberBtn = new RoundedButton("Add Member", 30, new Color(0,123,255), Color.WHITE);
-        RoundedButton updateMemberBtn = new RoundedButton("Update Member", 30, new Color(0,123,255), Color.WHITE);
-        RoundedButton deleteMemberBtn = new RoundedButton("Delete Member", 30, new Color(0,123,255), Color.WHITE);
+        RoundedButton addTeamBtn = new RoundedButton("Add Team", 30, new Color(138,154,91), Color.WHITE);
+        RoundedButton addMemberBtn = new RoundedButton("Add Member", 30, new Color(138,154,91), Color.WHITE);
+        RoundedButton updateMemberBtn = new RoundedButton("Update Member", 30, new Color(138,154,91), Color.WHITE);
+        RoundedButton deleteMemberBtn = new RoundedButton("Delete Member", 30, new Color(138,154,91), Color.WHITE);
         
         buttonPanel.add(addTeamBtn);
         buttonPanel.add(addMemberBtn);
@@ -836,7 +836,7 @@ public class ComponentFactory {
         JTextField contactField = new JTextField(20);
 
         // Submit button
-        JButton submitButton = new JButton("Submit Report");
+        RoundedButton submitButton = new RoundedButton("Submit", 20, new Color(138,154,91), Color.WHITE);
         submitButton.setFont(new Font("Arial", Font.BOLD, 16));
         submitButton.addActionListener(e -> {
             String selectedType = null;
