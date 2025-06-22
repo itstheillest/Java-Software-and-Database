@@ -64,8 +64,11 @@ public class leftButtonPanel {
     private Map<String, Integer> originalQuantities = new HashMap<>();
     private Map<String, Integer> currentQuantities = new HashMap<>();
     private boolean hasChanges = false;
+    
+    
 
     private Main mainApp; // Reference to the main app
+    private Inventory inventory;
 
     public leftButtonPanel(Main mainApp) {
         this.mainApp = mainApp;
@@ -211,9 +214,9 @@ public class leftButtonPanel {
         }
     }
     
- // Add this new method to handle the filtering logic:
+    // Add this new method to handle the filtering logic:
     private List<String> getFilteredMedicines(String sortType) {
-        List<String> allMedicines = Inventory.getAllMedicines(); // Get all medicines without sorting
+        List<String> allMedicines = Inventory.getAllMedicines("Name (A-Z)"); // Get all medicines without sorting
         List<String> filteredMedicines = new ArrayList<>();
         
         switch (sortType) {
@@ -328,7 +331,7 @@ public class leftButtonPanel {
         originalQuantities.clear();
         currentQuantities.clear();
         
-        for (String medicine : Inventory.getAllMedicines()) {
+        for (String medicine : Inventory.getAllMedicines("Name (A-Z)")) {
             int quantity = Integer.parseInt(getQuantity(medicine));
             originalQuantities.put(medicine, quantity);
             currentQuantities.put(medicine, quantity);
@@ -753,63 +756,84 @@ public class leftButtonPanel {
         paginationPanel.revalidate();
         paginationPanel.repaint();
     }
-
-    public void updateButtonAction() {
-        // This is now handled by enterUpdateMode()
-    }
     
+    // IMPORTANT: Add Button Action
     public void addButtonAction() {
         // Create input dialog for new medicine
-        JPanel panel = new JPanel(new GridLayout(5, 2, 5, 5));
-        
-        JTextField nameField = new JTextField();
-        JTextField classField = new JTextField();
-        JTextField dosageField = new JTextField();
-        JTextField brandField = new JTextField();
-        JTextField stockField = new JTextField();
-        
-        panel.add(new JLabel("Medicine Name:"));
-        panel.add(nameField);
-        panel.add(new JLabel("Pharmacologic Class:"));
-        panel.add(classField);
-        panel.add(new JLabel("Dosage:"));
-        panel.add(dosageField);
-        panel.add(new JLabel("Brand:"));
-        panel.add(brandField);
-        panel.add(new JLabel("Stock/Quantity:"));
-        panel.add(stockField);
-        
-        int result = JOptionPane.showConfirmDialog(
-            mainPanel,
-            panel,
-            "Add New Medicine",
-            JOptionPane.OK_CANCEL_OPTION,
-            JOptionPane.PLAIN_MESSAGE
-        );
-        
-        if (result == JOptionPane.OK_OPTION) {
-            // Add the new medicine to inventory
-            String name = nameField.getText().trim();
-            String pharmacoClass = classField.getText().trim();
-            String dosage = dosageField.getText().trim();
-            String brand = brandField.getText().trim();
-            String stock = stockField.getText().trim();
+    	inventory = new Inventory();
+    	for (;;) {
+    		JPanel panel = new JPanel(new GridLayout(5, 2, 5, 5));
             
-            if (!name.isEmpty() && !stock.isEmpty()) {
-                try {
-                    int stockValue = Integer.parseInt(stock);
-                    // You'll need to implement this method in your Inventory class
-                    // Inventory.addMedicine(name, pharmacoClass, dosage, brand, stockValue);
-                    
-                    refreshTable();
-                    JOptionPane.showMessageDialog(mainPanel, "Medicine added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-                } catch (NumberFormatException e) {
-                    JOptionPane.showMessageDialog(mainPanel, "Please enter a valid stock number!", "Error", JOptionPane.ERROR_MESSAGE);
-                }
-            } else {
-                JOptionPane.showMessageDialog(mainPanel, "Please fill in required fields!", "Error", JOptionPane.ERROR_MESSAGE);
+            JTextField nameField = new JTextField();
+            JTextField classField = new JTextField();
+            JTextField dosageField = new JTextField();
+            JTextField brandField = new JTextField();
+            JTextField stockField = new JTextField();
+            
+            panel.add(new JLabel("Medicine Name:"));
+            panel.add(nameField);
+            panel.add(new JLabel("Pharmacologic Class:"));
+            panel.add(classField);
+            panel.add(new JLabel("Dosage:"));
+            panel.add(dosageField);
+            panel.add(new JLabel("Brand:"));
+            panel.add(brandField);
+            panel.add(new JLabel("Stock/Quantity:"));
+            panel.add(stockField);
+            
+            int result = JOptionPane.showConfirmDialog(
+                mainPanel,
+                panel,
+                "Add New Medicine",
+                JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE
+            );
+            
+            System.out.println(result);
+            
+            if (result == -1 || result == 2) {
+            	break;
             }
-        }
+            
+            // IMPORTANT
+            // Adfd the database here
+            
+            if (result == JOptionPane.OK_OPTION) {
+                // Add the new medicine to inventory
+                String name = nameField.getText().trim();
+                String pharmaClass = classField.getText().trim();
+                String dosage = dosageField.getText().trim();
+                String brand = brandField.getText().trim();
+                String stock = stockField.getText().trim();
+                
+                if (!name.isEmpty() && !stock.isEmpty()) {
+                    try {
+                        int stockValue = Integer.parseInt(stock);
+                        int dosageValue = Integer.parseInt(dosage);
+                        
+                        boolean success = inventory.insertMedicineToDatabase(name, pharmaClass, dosageValue, brand, stockValue);
+                        
+                        if (success) {
+                            // Your existing success logic
+                        	refreshTable(); // or whatever you do to update the GUI
+                        	JOptionPane.showMessageDialog(mainPanel, "Medicine added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                        } else {
+                        	JOptionPane.showMessageDialog(mainPanel, "Failed to add medicine!", "Fail", JOptionPane.INFORMATION_MESSAGE);
+                        }
+                        
+                        // You'll need to implement this method in your Inventory class
+                        // Inventory.addMedicine(name, pharmacoClass, dosage, brand, stockValue);
+                        // JOptionPane.showMessageDialog(mainPanel, "Medicine added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                        break;
+                    } catch (NumberFormatException e) {
+                        JOptionPane.showMessageDialog(mainPanel, "Please enter a valid stock number!", "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(mainPanel, "Please fill in required fields!", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+    	}
+        
     }
     
     public void removeButtonAction() {
@@ -1281,7 +1305,7 @@ public class leftButtonPanel {
         }
     }
     
- // Replace the existing CheckboxCellRenderer class with this:
+    // Replace the existing CheckboxCellRenderer class with this:
     class CheckboxCellRenderer implements TableCellRenderer {
         private JPanel panel;
         private JCheckBox checkBox;
@@ -1334,10 +1358,11 @@ public class leftButtonPanel {
     }
     
     // Method to refresh status counts
+    // IMPORTANT: get's the medicine
     private void updateStatusCounts() {
         int available = 0, lowStock = 0, outOfStock = 0;
         
-        for (String medicine : Inventory.getAllMedicines()) {
+        for (String medicine : Inventory.getAllMedicines("Name (A-Z)")) {
             int quantity = Integer.parseInt(getQuantity(medicine));
             if (quantity == 0) {
                 outOfStock++;

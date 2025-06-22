@@ -10,14 +10,57 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.*;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+
 
 public class Inventory {
+	
+	private static final String URL = "jdbc:mysql://localhost:3306/medicine_list";
+	private static final String USER = "root";
+	private static final String PASSWORD = "";
+	private static Connection connection;
+	
+	public static Connection connect() {
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver");
+			connection = DriverManager.getConnection(URL, USER, PASSWORD);
+			System.out.println("Connected to the database!");
+		} catch (ClassNotFoundException | SQLException e) {
+			System.out.println("Failed to connect to the database!");
+			e.printStackTrace();
+		}
+		return connection;
+	}
+
+	public static void disconnect() {
+		try {
+			if (connection != null && !connection.isClosed()) {
+				connection.close();
+				System.out.println("Disconnected from the database!");
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public static void main(String[] args) {
+		Connection conn = Inventory.connect();
+		Inventory.disconnect();
+	}
+
+	
+	/*
     private static final List<String> MEDICINE_LIST = Arrays.asList(
         "Paracetamol", "Biogesic", "Coldzep", "Robitussin", "Cetirizine", "Sting"
     );
-
+    */
+    
     private static final Map<String, Integer> STOCK_LIST = new HashMap<>();
-
+    
+    //*
     static {
         STOCK_LIST.put("Paracetamol", 324);
         STOCK_LIST.put("Biogesic", 7);
@@ -31,11 +74,41 @@ public class Inventory {
         STOCK_LIST.put("Amoxicillin", 93);
         STOCK_LIST.put("Sting", 9993);
     }
-    
-    public static List<String> getAllMedicines() {
+    /*
+        public static List<String> getAllMedicines() {
         List<String> sorted = new ArrayList<>(STOCK_LIST.keySet());
         Collections.sort(sorted); // A-Z sorting
         return sorted;
+    }
+    */
+    
+    
+    // medName, pharmaClass, dosageValue, brand, stockValue
+    public boolean insertMedicineToDatabase(String medName, String pharmaClass, int dosage, String brand, int stock) {
+        String sql = "INSERT INTO medicinelist (medName, pharmaClass, dosage, brand, stock) VALUES (?, ?, ?, ?, ?)";
+        
+        try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/medicine_list", "root", "");
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setString(1, medName);
+            pstmt.setString(2, pharmaClass);
+            pstmt.setInt(3, dosage);
+            pstmt.setString(4, brand);
+            pstmt.setInt(5, stock);
+            
+            int rowsAffected = pstmt.executeUpdate();
+            
+            if (rowsAffected > 0) {
+                // Also update STOCK_LIST
+                STOCK_LIST.put(medName, stock);
+                return true;
+            }
+            
+        } catch (SQLException e) {
+            System.err.println("Error inserting medicine: " + e.getMessage());
+        }
+        
+        return false;
     }
     
     // New method with sorting parameter
@@ -96,21 +169,24 @@ public class Inventory {
         return sorted;
     }
     
+    /*
     public static void addMedicine(String name, int stock) {
         if (!MEDICINE_LIST.contains(name)) {
             MEDICINE_LIST.add(name);
         }
         STOCK_LIST.put(name, stock);
     }
-
+    
+    public static boolean isAvailable(String name) {
+        return MEDICINE_LIST.contains(name);
+    }
+	*/
 
     public static int getStock(String medicineName) {
         return STOCK_LIST.getOrDefault(medicineName, 0);
     }
 
-    public static boolean isAvailable(String name) {
-        return MEDICINE_LIST.contains(name);
-    }
+   
 
     public static void setStock(String name, int amount) {
         STOCK_LIST.put(name, amount);
