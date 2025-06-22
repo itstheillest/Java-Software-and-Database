@@ -745,16 +745,19 @@ public class ComponentFactory {
     }
 
     
-    //for report button
+    //the whole Incident Reporting Panel
     public static JPanel createIncidentReportPanel() 
     {
         JPanel reportingPanel = new JPanel();
         reportingPanel.setLayout(new BoxLayout(reportingPanel, BoxLayout.Y_AXIS));
         reportingPanel.setOpaque(false);
-        reportingPanel.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
+        reportingPanel.setBorder(BorderFactory.createEmptyBorder(10, 30, 30, 30));
 
-        
-        // Date
+        // Tanod Name
+        JTextField tanodNameField = new JTextField(30);
+        reportingPanel.add(createLabeledField("Tanod Name:", tanodNameField));
+
+        // Date ComboBoxes
         String[] months = {"01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"};
         JComboBox<String> monthBox = new JComboBox<>(months);
         JComboBox<String> dayBox = new JComboBox<>(IntStream.rangeClosed(1, 31).mapToObj(i -> String.format("%02d", i)).toArray(String[]::new));
@@ -772,21 +775,43 @@ public class ComponentFactory {
         datePanel.add(new JLabel("/"));
         datePanel.add(yearBox);
 
-        JTextField timeField = new JTextField(15);
+        // 12-hour Time Selector
+        JComboBox<String> hourBox = new JComboBox<>(IntStream.rangeClosed(1, 12).mapToObj(i -> String.format("%02d", i)).toArray(String[]::new));
+        JComboBox<String> minuteBox = new JComboBox<>(IntStream.rangeClosed(0, 59).mapToObj(i -> String.format("%02d", i)).toArray(String[]::new));
+        JComboBox<String> ampmBox = new JComboBox<>(new String[]{"AM", "PM"});
+
+        hourBox.setFont(getDefaultFont(16, false));
+        minuteBox.setFont(getDefaultFont(16, false));
+        ampmBox.setFont(getDefaultFont(16, false));
+
+        JPanel timePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        timePanel.setOpaque(false);
+        timePanel.add(hourBox);
+        timePanel.add(new JLabel(":"));
+        timePanel.add(minuteBox);
+        timePanel.add(ampmBox);
+
+        // Combine Date and Time side by side
+        JPanel dateTimeRow = new JPanel(new GridLayout(1, 2, 20, 0));
+        dateTimeRow.setOpaque(false);
+        dateTimeRow.add(createLabeledField("Date (MM/DD/YYYY):", datePanel));
+        dateTimeRow.add(createLabeledField("Time (12-hour format):", timePanel));
+        reportingPanel.add(dateTimeRow);
+
         JTextField locationField = new JTextField(30);
         JTextArea descriptionArea = new JTextArea(5, 30);
         descriptionArea.setLineWrap(true);
         descriptionArea.setWrapStyleWord(true);
-
         JScrollPane descriptionScroll = new JScrollPane(descriptionArea);
+        descriptionArea.setFont(getDefaultFont(16, false));
 
-        // File upload
-        JButton uploadButton = new JButton("Choose File");
+        RoundedButton uploadButton = new RoundedButton("Choose File", 30, new Color(138,154,91), Color.WHITE);
         JLabel fileNameLabel = new JLabel("No file chosen");
         File[] attachedFile = new File[1];
 
         uploadButton.setFont(getDefaultFont(16, false));
-        fileNameLabel.setFont(new Font("Arial", Font.ITALIC, 14));
+        fileNameLabel.setFont(new Font("Arial", Font.ITALIC, 16));
+        uploadButton.setPreferredSize(new Dimension(150,40));
 
         uploadButton.addActionListener(e -> {
             JFileChooser fileChooser = new JFileChooser();
@@ -797,8 +822,7 @@ public class ComponentFactory {
             }
         });
 
-        // Incident Types
-        String[] incidentTypes = {"Theft", "Vandalism", "Trespassing", "Personal Injury", "Assault", "Medical Emergency", "Traffic Accident", "Other"};
+        String[] incidentTypes = {"Theft", "Vandalism", "Trespassing", "Personal Injury", "Assault", "Medical Emergency", "Traffic Accident", "Other "};
         ButtonGroup typeGroup = new ButtonGroup();
         JPanel typePanel = new JPanel(new GridLayout(0, 2, 10, 10));
         typePanel.setOpaque(false);
@@ -806,7 +830,8 @@ public class ComponentFactory {
         JTextField otherTypeField = new JTextField(10);
         otherTypeField.setEnabled(false);
 
-        for (String type : incidentTypes) {
+        for (String type : incidentTypes) 
+        {
             if (!type.equals("Other")) 
             {
                 JRadioButton btn = new JRadioButton(type);
@@ -815,7 +840,8 @@ public class ComponentFactory {
                 typeGroup.add(btn);
                 typePanel.add(btn);
             } 
-            else
+                
+            else 
             {
                 JPanel otherPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
                 otherPanel.setOpaque(false);
@@ -831,20 +857,23 @@ public class ComponentFactory {
             }
         }
 
-        // Involved person
         JTextField personNameField = new JTextField(20);
         JTextField contactField = new JTextField(20);
+        JTextField addressField = new JTextField(20);
+        personNameField.setFont(getDefaultFont(16, false));
+        contactField.setFont(getDefaultFont(16, false));
+        addressField.setFont(getDefaultFont(16, false));
 
-        // Submit button
-        RoundedButton submitButton = new RoundedButton("Submit", 20, new Color(138,154,91), Color.WHITE);
-        submitButton.setFont(new Font("Arial", Font.BOLD, 16));
+        RoundedButton submitButton = new RoundedButton("Submit", 30, new Color(138,154,91), Color.WHITE);
+        submitButton.setFont(new Font("Arial", Font.BOLD, 18));
+        submitButton.setPreferredSize(new Dimension(150,50));
         submitButton.addActionListener(e -> {
             String selectedType = null;
             for (Component c : typePanel.getComponents()) 
             {
                 if (c instanceof JRadioButton btn && btn.isSelected()) 
                 {
-                    selectedType = btn.getText().equals("Other") ? otherTypeField.getText().trim() : btn.getText();
+                    selectedType = btn.getText();
                     break;
                 } 
                 else if (c instanceof JPanel panel) 
@@ -860,31 +889,30 @@ public class ComponentFactory {
                 }
             }
 
-            boolean allFilled = monthBox.getSelectedItem() != null &&
+            boolean allFilled = tanodNameField.getText().trim().length() > 0 &&
+                    monthBox.getSelectedItem() != null &&
                     dayBox.getSelectedItem() != null &&
                     yearBox.getSelectedItem() != null &&
-                    !timeField.getText().isEmpty() &&
+                    hourBox.getSelectedItem() != null &&
+                    minuteBox.getSelectedItem() != null &&
+                    ampmBox.getSelectedItem() != null &&
                     !locationField.getText().isEmpty() &&
                     !descriptionArea.getText().isEmpty() &&
                     selectedType != null && !selectedType.isEmpty() &&
                     !personNameField.getText().isEmpty() &&
                     !contactField.getText().isEmpty() &&
+                    !addressField.getText().isEmpty() &&
                     attachedFile[0] != null;
 
-            if (!allFilled) 
-            {
+            if (!allFilled) {
                 JOptionPane.showMessageDialog(reportingPanel, "Please complete all fields including the file attachment.", "Missing Information", JOptionPane.WARNING_MESSAGE);
             } 
-            else 
-            {
+            
+            else {
                 JOptionPane.showMessageDialog(reportingPanel, "Incident report submitted successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-                // Logic to process/save data can go here
             }
         });
 
-        // --- Assembly ---
-        reportingPanel.add(createLabeledField("Date (MM/DD/YYYY):", datePanel));
-        reportingPanel.add(createLabeledField("Time:", timeField));
         reportingPanel.add(createLabeledField("Location of the incident:", locationField));
         reportingPanel.add(createLabeledField("Describe the incident:", descriptionScroll));
 
@@ -893,15 +921,26 @@ public class ComponentFactory {
         uploadPanel.add(uploadButton);
         uploadPanel.add(fileNameLabel);
         reportingPanel.add(createLabeledField("Attached Document:", uploadPanel));
-
         reportingPanel.add(createLabeledField("Type of Incident:", typePanel));
 
-        JPanel personDetailsPanel = new JPanel(new GridLayout(2, 2, 10, 5));
+        JPanel personDetailsPanel = new JPanel(new GridLayout(3, 2, 10, 5));
         personDetailsPanel.setOpaque(false);
-        personDetailsPanel.add(new JLabel("Name:"));
+
+        JLabel nameLabel = new JLabel("Name:");
+        nameLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        personDetailsPanel.add(nameLabel);
         personDetailsPanel.add(personNameField);
-        personDetailsPanel.add(new JLabel("Contact:"));
+
+        JLabel contactLabel = new JLabel("Contact:");
+        contactLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        personDetailsPanel.add(contactLabel);
         personDetailsPanel.add(contactField);
+
+        JLabel addressLabel = new JLabel("Address:");
+        addressLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        personDetailsPanel.add(addressLabel);
+        personDetailsPanel.add(addressField);
+
         reportingPanel.add(createLabeledField("Involved Person(s) Details:", personDetailsPanel));
 
         JPanel submitPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
@@ -911,6 +950,7 @@ public class ComponentFactory {
 
         return reportingPanel;
     }
+
 
 
     // Create labeled field helper
