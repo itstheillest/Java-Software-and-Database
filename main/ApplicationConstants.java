@@ -34,7 +34,7 @@ public class ApplicationConstants {
             "Dashboard",
             "Barangay Document Application",
             "File Complaints",
-            "Barangay Tanod Records",
+            "Barangay Tanod Schedule and Report",
             "Health System Records",
             "About"
     };
