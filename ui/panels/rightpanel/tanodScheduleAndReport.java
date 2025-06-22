@@ -56,7 +56,7 @@ import utils.ComponentFactory.RoundedButton;
         gbc.anchor = GridBagConstraints.CENTER;
 
         // Set your colors
-        Color normalBg = new Color(0, 123, 255);       
+        Color normalBg = new Color(138,154,91);       
         Color hoverBg = new Color(0, 90, 200);         
         Color normalFg = Color.WHITE;
         Color hoverFg = Color.WHITE;
