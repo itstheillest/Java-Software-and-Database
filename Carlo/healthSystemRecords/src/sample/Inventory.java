@@ -19,7 +19,7 @@ import java.sql.Statement;
 
 public class Inventory {
 	
-	private static final String URL = "jdbc:mysql://localhost:3306/medicine_list";
+	private static final String URL = "jdbc:mysql://localhost:3306/health_information_system_record";
 	private static final String USER = "root";
 	private static final String PASSWORD = "";
 	private static Connection connection;
@@ -58,7 +58,7 @@ public class Inventory {
     
     // Load all medicines from database into STOCK_LIST
     public static void loadMedicinesFromDatabase() {
-        String sql = "SELECT medName, stock FROM medicinelist";
+        String sql = "SELECT medName, stock FROM medicine_inventory";
         
         try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
              Statement stmt = conn.createStatement();
@@ -73,8 +73,6 @@ public class Inventory {
                 STOCK_LIST.put(medName, stock);
             }
             
-            System.out.println("Loaded " + STOCK_LIST.size() + " medicines from database");
-            
         } catch (SQLException e) {
             System.err.println("Error loading medicines from database: " + e.getMessage());
             e.printStackTrace();
@@ -84,6 +82,7 @@ public class Inventory {
         }
     }
     
+    // medName, phramaClass, dosage, manufacturer, stock
     // Fallback method to initialize with default stock if database fails
     private static void initializeDefaultStock() {
         STOCK_LIST.clear();
@@ -107,9 +106,9 @@ public class Inventory {
     
     // medName, pharmaClass, dosageValue, brand, stockValue
     public boolean insertMedicineToDatabase(String medName, String pharmaClass, int dosage, String brand, int stock) {
-        String sql = "INSERT INTO medicinelist (medName, pharmaClass, dosage, brand, stock) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO medicine_inventory (medName, pharmaClass, dosage, brand, stock) VALUES (?, ?, ?, ?, ?)";
         
-        try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/medicine_list", "root", "");
+        try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/health_information_system_record", "root", "");
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
             pstmt.setString(1, medName);
@@ -123,7 +122,6 @@ public class Inventory {
             if (rowsAffected > 0) {
                 // Update STOCK_LIST immediately
                 STOCK_LIST.put(medName, stock);
-                System.out.println("Medicine added successfully: " + medName);
                 return true;
             }
             
@@ -134,9 +132,10 @@ public class Inventory {
         return false;
     }
     
+    // medName, phramaClass, dosage, manufacturer, stock
     // Method to update stock in both database and memory
     public static boolean updateMedicineStock(String medName, int newStock) {
-        String sql = "UPDATE medicinelist SET stock = ? WHERE medName = ?";
+        String sql = "UPDATE medicine_inventory SET stock = ? WHERE medName = ?";
         
         try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -157,6 +156,147 @@ public class Inventory {
         }
         
         return false;
+    }
+    
+    // Get manufacturer/brand for a specific medicine
+    public static String getManufacturer(String medName) {
+        String sql = "SELECT brand FROM medicine_inventory WHERE medName = ?";
+        
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setString(1, medName);
+            ResultSet rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                String brand = rs.getString("brand");
+                return brand != null ? brand : "Generic";
+            }
+            
+        } catch (SQLException e) {
+            System.err.println("Error getting manufacturer for " + medName + ": " + e.getMessage());
+        }
+        
+        return "Generic"; // Fallback if not found
+    }
+
+    // Get dosage for a specific medicine
+    public static String getDosage(String medName) {
+        String sql = "SELECT dosage FROM medicine_inventory WHERE medName = ?";
+        
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setString(1, medName);
+            ResultSet rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                return String.valueOf(rs.getInt("dosage"));
+            }
+            
+        } catch (SQLException e) {
+            System.err.println("Error getting dosage for " + medName + ": " + e.getMessage());
+        }
+        
+        return "500"; // Fallback dosage
+    }
+
+    // Get pharmaceutical class for a specific medicine
+    public static String getPharmaClass(String medName) {
+        String sql = "SELECT pharmaClass FROM medicine_inventory WHERE medName = ?";
+        
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setString(1, medName);
+            ResultSet rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                String pharmaClass = rs.getString("pharmaClass");
+                return pharmaClass != null ? pharmaClass : "Medicine";
+            }
+            
+        } catch (SQLException e) {
+            System.err.println("Error getting pharmaClass for " + medName + ": " + e.getMessage());
+        }
+        
+        return "Medicine"; // Fallback pharmaceutical class
+    }
+
+    // Get medicine type (combines pharmaClass and dosage)
+    public static String getMedicineType(String medName) {
+        String sql = "SELECT pharmaClass, dosage FROM medicine_inventory WHERE medName = ?";
+        
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setString(1, medName);
+            ResultSet rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                String pharmaClass = rs.getString("pharmaClass");
+                int dosage = rs.getInt("dosage");
+                
+                if (pharmaClass != null) {
+                    return pharmaClass + " (" + dosage + "mg)";
+                }
+            }
+            
+        } catch (SQLException e) {
+            System.err.println("Error getting medicine type for " + medName + ": " + e.getMessage());
+        }
+        
+        return "Medicine (500mg)"; // Fallback
+    }
+
+    // Optional: Get all medicine data at once (more efficient for multiple calls)
+    public static Map<String, MedicineInfo> getAllMedicineInfo() {
+        Map<String, MedicineInfo> medicineInfoMap = new HashMap<>();
+        String sql = "SELECT medName, pharmaClass, dosage, brand, stock FROM medicine_inventory";
+        
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            
+            while (rs.next()) {
+                String medName = rs.getString("medName");
+                MedicineInfo info = new MedicineInfo(
+                    rs.getString("pharmaClass"),
+                    rs.getInt("dosage"),
+                    rs.getString("brand"),
+                    rs.getInt("stock")
+                );
+                medicineInfoMap.put(medName, info);
+            }
+            
+        } catch (SQLException e) {
+            System.err.println("Error getting all medicine info: " + e.getMessage());
+        }
+        
+        return medicineInfoMap;
+    }
+    
+    // Add this new method to your Inventory.java file
+    public static Map<String, Object> getMedicineDetails(String medicineName) {
+        Map<String, Object> details = new HashMap<>();
+        String sql = "SELECT pharmaClass, dosage, brand, stock FROM medicine_inventory WHERE medName = ?";
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, medicineName);
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                details.put("pharmaClass", rs.getString("pharmaClass"));
+                details.put("dosage", rs.getInt("dosage"));
+                details.put("brand", rs.getString("brand"));
+                details.put("stock", rs.getInt("stock"));
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Error getting medicine details for " + medicineName + ": " + e.getMessage());
+        }
+        return details;
     }
     
     // New method with sorting parameter
@@ -225,5 +365,80 @@ public class Inventory {
         STOCK_LIST.put(name, amount);
         // Optionally update database immediately
         updateMedicineStock(name, amount);
+    }
+    
+    public static boolean updateStock(String medName, int newQuantity) {
+        String sql = "UPDATE medicine_inventory SET stock = ? WHERE medName = ?";
+        
+        try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/health_information_system_record", "root", "");
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setInt(1, newQuantity);
+            pstmt.setString(2, medName);
+            
+            int rowsAffected = pstmt.executeUpdate();
+            return rowsAffected > 0;
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    public static boolean removeMedicineFromDatabase(String medicineName) {
+        String sql = "DELETE FROM medicine_inventory WHERE medName = ?";
+        
+        try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/health_information_system_record", "root", "");
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setString(1, medicineName);
+            int rowsAffected = pstmt.executeUpdate();
+            
+            return rowsAffected > 0;
+            
+        } catch (SQLException e) {
+            System.err.println("Error removing medicine: " + e.getMessage());
+            return false;
+        }
+    }
+    
+ // Replace the old updateMedicine method with this one in Inventory.java
+    public static boolean updateMedicine(String medicineName, String pharmaClass, int dosage, String brand, int stock) {
+        // FIXED: Corrected column name 'pharmaClass' and SQL parameter indexing
+        String sql = "UPDATE medicine_inventory SET pharmaClass = ?, dosage = ?, brand = ?, stock = ? WHERE medName = ?";
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, pharmaClass);
+            pstmt.setInt(2, dosage);
+            pstmt.setString(3, brand);
+            pstmt.setInt(4, stock);
+            pstmt.setString(5, medicineName); // This is the 5th parameter for the WHERE clause
+
+            int rowsAffected = pstmt.executeUpdate();
+            return rowsAffected > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    // Helper class for medicine information
+    public static class MedicineInfo {
+        public final String pharmaClass;
+        public final int dosage;
+        public final String brand;
+        public final int stock;
+        
+        public MedicineInfo(String pharmaClass, int dosage, String brand, int stock) {
+            this.pharmaClass = pharmaClass != null ? pharmaClass : "Medicine";
+            this.dosage = dosage;
+            this.brand = brand != null ? brand : "Generic";
+            this.stock = stock;
+        }
+        
+        public String getMedicineType() {
+            return pharmaClass + " (" + dosage + "mg)";
+        }
     }
 }

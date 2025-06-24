@@ -29,22 +29,17 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import java.sql.*;
+
 public class leftButtonPanel {
     private JPanel mainPanel;
-    private JButton returnButton, editModeButton, addButton, removeButton, backButton, searchButton;
+    private JButton returnButton, editModeButton, addButton, removeButton, backButton, searchButton, editMedicineButton;
     private JComboBox medicineSorting;
     private String currentSortType = "Name (A-Z)"; // Track current sorting
     
     private JTextField searchField;
-    private JPanel scrollableBodyPanel;
-    private JPanel headerPanel;
-    private JPanel searchPanel;
-    
-    private JPanel footerPanel;
-    private JButton viewButton;
-    private JButton confirmButton;
-    private JButton undoButton;
-    private JButton saveButton;
+    private JPanel scrollableBodyPanel, headerPanel, searchPanel, footerPanel, viewButtonPanel;
+    private JButton viewButton, confirmButton, undoButton, saveButton;
     
     private JCheckBox checkBox;
     
@@ -59,6 +54,7 @@ public class leftButtonPanel {
     private boolean isUpdateMode = false;
     private boolean isSearchMode = false;
     private boolean isRemoveMode = false;
+    private boolean isMedicineUpdateMode = false;
     
     // Track changes for undo functionality
     private Map<String, Integer> originalQuantities = new HashMap<>();
@@ -149,14 +145,17 @@ public class leftButtonPanel {
         
         addButton = new JButton("Add");
         removeButton = new JButton("Remove");
+        editMedicineButton = new JButton("Edit");
         // backButton = new JButton("Back");
         
         addButton.addActionListener(e -> addButtonAction());
         removeButton.addActionListener(e -> removeButtonAction());
+        editMedicineButton.addActionListener(e -> editMedicineAction());
         // backButton.addActionListener(e -> exitUpdateMode());
         
         updateButtonsPanel.add(addButton);
         updateButtonsPanel.add(removeButton);
+        updateButtonsPanel.add(editMedicineButton); // Add this
         // updateButtonsPanel.add(backButton);
     }
     
@@ -284,12 +283,26 @@ public class leftButtonPanel {
         }
     }
     
+    private void toggleMedicineEditMode() {
+        isMedicineUpdateMode = !isMedicineUpdateMode;
+        
+        if (isMedicineUpdateMode) {
+            isRemoveMode = false; // Disable remove mode
+            JOptionPane.showMessageDialog(mainPanel, "Click on a medicine row to edit its details", "Edit Mode", JOptionPane.INFORMATION_MESSAGE);
+        }
+        
+        refreshTable();
+    }
+    
     private void enterUpdateMode() {
         isUpdateMode = true;
+        isRemoveMode = true;
+        isMedicineUpdateMode = false; // Add this line
         
         // Replace update button with update buttons panel
         headerPanel.remove(editModeButton);
         headerPanel.add(updateButtonsPanel, BorderLayout.EAST);
+        removeButtonAction();
         
         // Show footer buttons
         showFooterButtons();
@@ -307,6 +320,7 @@ public class leftButtonPanel {
     private void exitUpdateMode() {
         isUpdateMode = false;
         isRemoveMode = false;
+        isMedicineUpdateMode = false;
         
         // Replace update buttons panel with update button
         headerPanel.remove(updateButtonsPanel);
@@ -330,6 +344,9 @@ public class leftButtonPanel {
     private void storeOriginalQuantities() {
         originalQuantities.clear();
         currentQuantities.clear();
+        
+        // FIXED: Get fresh data from database
+        Inventory.refreshFromDatabase();
         
         for (String medicine : Inventory.getAllMedicines("Name (A-Z)")) {
             int quantity = Integer.parseInt(getQuantity(medicine));
@@ -373,7 +390,6 @@ public class leftButtonPanel {
     }
     
     private void setUpFooter() {
-    	
     	editModeButton = new JButton("Edit Mode");
     	editModeButton.addActionListener(e -> enterUpdateMode());
         
@@ -381,7 +397,7 @@ public class leftButtonPanel {
         footerPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
         footerPanel.setBackground(new Color(245, 245, 245)); // light gray for distinction
 
-        undoButton = new JButton("Undo");
+        undoButton = new JButton("Undo Quantity");
         viewButton = new JButton("View Mode");
         saveButton = new JButton("Save");
 
@@ -392,7 +408,7 @@ public class leftButtonPanel {
         footerPanel.add(undoButton);
         footerPanel.add(viewButton);
         footerPanel.add(saveButton);
-        footerPanel.add(editModeButton, BorderLayout.EAST);
+        footerPanel.add(editModeButton);
 
         // Keep panel visible, but buttons hidden by default
         undoButton.setVisible(false);
@@ -422,12 +438,22 @@ public class leftButtonPanel {
         // Always keep buttons enabled
         undoButton.setEnabled(true);
         saveButton.setEnabled(true);
+        editModeButton.setEnabled(true);
         
         // Always keep buttons highlighted
         undoButton.setBackground(new Color(59, 130, 246)); // Blue
         undoButton.setForeground(Color.WHITE);
-        saveButton.setBackground(new Color(34, 197, 94)); // Green
-        saveButton.setForeground(Color.WHITE);
+        
+        if (!isRemoveMode) {
+        	saveButton.setText("Save");
+            saveButton.setBackground(new Color(34, 197, 94)); // Green
+            saveButton.setForeground(Color.WHITE);
+        } else {
+        	saveButton.setText("Archive");
+            saveButton.setBackground(new Color(255, 0, 0)); // Red
+            saveButton.setForeground(Color.WHITE);
+        }
+
     }
     
     private void undoChanges() {
@@ -441,34 +467,131 @@ public class leftButtonPanel {
         refreshTable();
     }
     
-    
-    
     private void saveChanges() {
         if (!hasChanges) {
-        	JOptionPane.showMessageDialog(mainPanel, "No Changes Made", "Make changes", JOptionPane.INFORMATION_MESSAGE);
-        	return;
+            JOptionPane.showMessageDialog(mainPanel, "No Changes Made", "Make changes", JOptionPane.INFORMATION_MESSAGE);
+            return;
         }
         
-        int result = JOptionPane.showConfirmDialog(
-            mainPanel,
-            "Save changes?",
-            "Confirm Save",
-            JOptionPane.YES_NO_OPTION
-        );
-        
-        if (result == JOptionPane.YES_OPTION) {
-            // Apply changes to inventory
-            for (Map.Entry<String, Integer> entry : currentQuantities.entrySet()) {
-                // You'll need to implement this method in your Inventory class
-                // Inventory.setStock(entry.getKey(), entry.getValue());
+        // Handle Remove Mode - Delete selected medicines
+        if (isRemoveMode) {
+            // Get list of selected medicines for removal
+            List<String> selectedMedicines = new ArrayList<>();
+            
+            for (int i = 0; i < tableModel.getRowCount(); i++) {
+                Boolean selected = (Boolean) tableModel.getValueAt(i, 0);
+                if (selected != null && selected) {
+                    String medicineName = ((String) tableModel.getValueAt(i, 1)).split("\n")[0];
+                    selectedMedicines.add(medicineName);
+                }
             }
             
-            JOptionPane.showMessageDialog(mainPanel, "Changes saved successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-            exitUpdateMode();
+            if (selectedMedicines.isEmpty()) {
+                JOptionPane.showMessageDialog(mainPanel, "No medicines selected for removal!", "No Selection", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            
+            int result = JOptionPane.showConfirmDialog(
+                mainPanel,
+                "Are you sure you want to permanently delete " + selectedMedicines.size() + " selected medicine(s)?",
+                "Confirm Deletion",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE
+            );
+            
+            if (result == JOptionPane.YES_OPTION) {
+                int successCount = 0;
+                List<String> failedDeletions = new ArrayList<>();
+                
+                // Delete each selected medicine from database
+                for (String medicineName : selectedMedicines) {
+                    boolean success = Inventory.removeMedicineFromDatabase(medicineName);
+                    if (success) {
+                        successCount++;
+                    } else {
+                        failedDeletions.add(medicineName);
+                    }
+                }
+                
+                // Show results
+                if (successCount > 0) {
+                    JOptionPane.showMessageDialog(mainPanel, 
+                        successCount + " medicine(s) deleted successfully!", 
+                        "Success", 
+                        JOptionPane.INFORMATION_MESSAGE);
+                    
+                    // Refresh data and exit remove mode
+                    Inventory.refreshFromDatabase();
+                    isRemoveMode = true;
+                    removeButtonAction();
+                    refreshTable();
+                    
+                    if (!failedDeletions.isEmpty()) {
+                        JOptionPane.showMessageDialog(mainPanel, 
+                            "Failed to delete: " + String.join(", ", failedDeletions), 
+                            "Partial Success", 
+                            JOptionPane.WARNING_MESSAGE);
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(mainPanel, 
+                        "Failed to delete any medicines!", 
+                        "Error", 
+                        JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        }
+        // Handle Update Mode - Update stock quantities
+        else {
+            int result = JOptionPane.showConfirmDialog(
+                mainPanel,
+                "Save changes to stock quantities?",
+                "Confirm Save",
+                JOptionPane.YES_NO_OPTION
+            );
+            
+            if (result == JOptionPane.YES_OPTION) {
+                int successCount = 0;
+                List<String> failedUpdates = new ArrayList<>();
+                
+                // Update stock quantities in database
+                for (Map.Entry<String, Integer> entry : currentQuantities.entrySet()) {
+                    String medicineName = entry.getKey();
+                    int newQuantity = entry.getValue();
+                    
+                    // Only update if quantity actually changed
+                    if (!originalQuantities.get(medicineName).equals(newQuantity)) {
+                        boolean success = Inventory.updateStock(medicineName, newQuantity);
+                        if (success) {
+                            successCount++;
+                        } else {
+                            failedUpdates.add(medicineName);
+                        }
+                    }
+                }
+                
+                if (successCount > 0) {
+                    JOptionPane.showMessageDialog(mainPanel, 
+                        successCount + " medicine(s) updated successfully!", 
+                        "Success", 
+                        JOptionPane.INFORMATION_MESSAGE);
+                    
+                    refreshTable();
+                    
+                    if (!failedUpdates.isEmpty()) {
+                        JOptionPane.showMessageDialog(mainPanel, 
+                            "Failed to update: " + String.join(", ", failedUpdates), 
+                            "Partial Success", 
+                            JOptionPane.WARNING_MESSAGE);
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(mainPanel, 
+                        "No changes were made or all updates failed!", 
+                        "No Changes", 
+                        JOptionPane.INFORMATION_MESSAGE);
+                }
+            }
         }
     }
-    
-    
     
     private void setUpBody() {
         scrollableBodyPanel = new JPanel(new BorderLayout());
@@ -528,128 +651,128 @@ public class leftButtonPanel {
         return statusItem;
     }
     
+ // REPLACE your entire method with this one
     private JPanel createTablePanel() {
-        JPanel tablePanel = new JPanel(new BorderLayout());
-        tablePanel.setBackground(Color.WHITE);
+        JPanel tablePanel = new JPanel(new BorderLayout()); 
+        tablePanel.setBackground(Color.WHITE); 
         tablePanel.setBorder(BorderFactory.createLineBorder(new Color(229, 231, 235), 1));
-        
+
         // Create table model
         String[] columnNames;
-        if (isUpdateMode) {
+        if (isUpdateMode) { 
             if (isRemoveMode) {
-                columnNames = new String[]{"", "MEDICINE", "MANUFACTURER", "QUANTITY"};
+                columnNames = new String[]{"", "MEDICINE", "MANUFACTURER", "QUANTITY"}; 
+            } else if (isMedicineUpdateMode) {
+                columnNames = new String[]{"EDIT", "MEDICINE", "MANUFACTURER", "QUANTITY"}; 
             } else {
-                columnNames = new String[]{"MEDICINE", "MANUFACTURER", "QUANTITY"};
+                columnNames = new String[]{"MEDICINE", "MANUFACTURER", "QUANTITY"}; 
             }
         } else {
-            columnNames = new String[]{"MEDICINE", "MANUFACTURER", "QUANTITY"};
+            columnNames = new String[]{"MEDICINE", "MANUFACTURER", "QUANTITY"}; 
         }
-        
+
         // Initialize table model with data from Inventory
         tableModel = new DefaultTableModel(columnNames, 0) {
-        	@Override
-        	public boolean isCellEditable(int row, int column) {
-        	    if (isRemoveMode && column == 0) return true; // Checkbox column
-        	    if (isUpdateMode && column == (isRemoveMode ? 3 : 2)) return true; // Quantity column in update mode
-        	    return false;
-        	}
-            
+            // THIS IS THE CRITICAL FIX
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                // Allow editing for the "Edit" button when in medicine update mode
+                if (isMedicineUpdateMode) {
+                    return column == 0;
+                }
+                // Allow editing for the checkbox when in remove mode
+                if (isRemoveMode) {
+                    return column == 0;
+                }
+                // Allow editing for the quantity counter in other update modes
+                if (isUpdateMode) {
+                    return column == 2;
+                }
+                // Otherwise, cells are not editable
+                return false;
+            }
+
             @Override
             public Class<?> getColumnClass(int column) {
-                if (isRemoveMode && column == 0) return Boolean.class;
-                return String.class;
+                if (isRemoveMode && column == 0) return Boolean.class; 
+                return String.class; 
             }
         };
         
-        // Populate table with inventory data
-        populateTableData();
-        
-        medicineTable = new JTable(tableModel);
-     // FIXED: Enable single-click editing and proper cell selection
-        medicineTable.putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
-        medicineTable.setSurrendersFocusOnKeystroke(true);
-        
-     // Add this RIGHT AFTER medicineTable = new JTable(tableModel); in createTablePanel():
+        populateTableData(); 
 
-     // Fixed: Make table cells clickable and editable for update mode
-        if (isUpdateMode) {
+        medicineTable = new JTable(tableModel); 
+        medicineTable.putClientProperty("terminateEditOnFocusLost", Boolean.TRUE); 
+        medicineTable.setSurrendersFocusOnKeystroke(true); 
+
+        if (isUpdateMode) { 
             medicineTable.addMouseListener(new java.awt.event.MouseAdapter() {
                 @Override
                 public void mouseClicked(java.awt.event.MouseEvent e) {
                     int row = medicineTable.rowAtPoint(e.getPoint());
-                    int col = medicineTable.columnAtPoint(e.getPoint());
-                    
-                    // Allow interaction with quantity column in update mode
-                    int quantityCol = isRemoveMode ? 3 : 2;
+                    int col = medicineTable.columnAtPoint(e.getPoint()); 
+
+                    int quantityCol = isRemoveMode ? 3 : 2; 
                     if (row >= 0 && col == quantityCol && isUpdateMode) {
-                        // Stop any current editing
                         if (medicineTable.isEditing()) {
                             medicineTable.getCellEditor().stopCellEditing();
                         }
-                        
-                        // Start editing the clicked cell
                         medicineTable.editCellAt(row, col);
                         Component editor = medicineTable.getEditorComponent();
                         if (editor != null) {
-                            editor.requestFocusInWindow();
+                            editor.requestFocusInWindow(); 
                         }
                     }
                 }
             });
         }
-        
-        // Add this right after: medicineTable = new JTable(tableModel);
-        // Setup table mouse listener for checkbox handling
-        setupTableMouseListener();
 
-        // Add table model listener to track changes
+        setupTableMouseListener(); 
         tableModel.addTableModelListener(e -> {
             if (e.getType() == javax.swing.event.TableModelEvent.UPDATE) {
-                hasChanges = true;
+                hasChanges = true; 
                 updateFooterButtonStates();
             }
         });
-        
-        medicineTable.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        medicineTable.setFont(new Font("SansSerif", Font.PLAIN, 14)); 
         medicineTable.setRowHeight(isUpdateMode ? 80 : 60);
-        medicineTable.setShowGrid(false);
-        medicineTable.setIntercellSpacing(new Dimension(0, 0));
-        medicineTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        medicineTable.setShowGrid(false); 
+        medicineTable.setIntercellSpacing(new Dimension(0, 0)); 
+        medicineTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION); 
         
-        // Set up table sorter for filtering
-        tableSorter = new TableRowSorter<>(tableModel);
-        medicineTable.setRowSorter(tableSorter);
+        tableSorter = new TableRowSorter<>(tableModel); 
+        medicineTable.setRowSorter(tableSorter); 
         
-        // Custom header renderer
         medicineTable.getTableHeader().setDefaultRenderer(new HeaderRenderer());
-        medicineTable.getTableHeader().setPreferredSize(new Dimension(0, 50));
-        medicineTable.getTableHeader().setReorderingAllowed(false);
+        medicineTable.getTableHeader().setPreferredSize(new Dimension(0, 50)); 
+        medicineTable.getTableHeader().setReorderingAllowed(false); 
         
-        // Set column widths
         if (isRemoveMode) {
-            medicineTable.getColumnModel().getColumn(0).setPreferredWidth(30);  // Checkbox - smaller width
-            medicineTable.getColumnModel().getColumn(0).setMaxWidth(50);       // Limit max width
-            medicineTable.getColumnModel().getColumn(1).setPreferredWidth(370); // Medicine
-            medicineTable.getColumnModel().getColumn(2).setPreferredWidth(200); // Manufacturer
-            medicineTable.getColumnModel().getColumn(3).setPreferredWidth(150); // Quantity
+            medicineTable.getColumnModel().getColumn(0).setPreferredWidth(50);
+            medicineTable.getColumnModel().getColumn(0).setMaxWidth(70); 
+            medicineTable.getColumnModel().getColumn(1).setPreferredWidth(370); 
+            medicineTable.getColumnModel().getColumn(2).setPreferredWidth(200); 
+            medicineTable.getColumnModel().getColumn(3).setPreferredWidth(150); 
+        } else if (isMedicineUpdateMode) {
+            medicineTable.getColumnModel().getColumn(0).setPreferredWidth(63);
+            medicineTable.getColumnModel().getColumn(0).setMaxWidth(63); 
+        	medicineTable.getColumnModel().getColumn(1).setPreferredWidth(370);
+            medicineTable.getColumnModel().getColumn(2).setPreferredWidth(200);
+            medicineTable.getColumnModel().getColumn(3).setPreferredWidth(100); 
         } else {
-            medicineTable.getColumnModel().getColumn(0).setPreferredWidth(400); // Medicine
-            medicineTable.getColumnModel().getColumn(1).setPreferredWidth(200); // Manufacturer
-            medicineTable.getColumnModel().getColumn(2).setPreferredWidth(150); // Quantity
+            medicineTable.getColumnModel().getColumn(0).setPreferredWidth(400); 
+            medicineTable.getColumnModel().getColumn(1).setPreferredWidth(200); 
+            medicineTable.getColumnModel().getColumn(2).setPreferredWidth(150); 
         }
-        
 
-        
-        // Custom cell renderers
-        setupCellRenderers();
-        
-        JScrollPane scrollPane = new JScrollPane(medicineTable);
-        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        setupCellRenderers(); 
+        JScrollPane scrollPane = new JScrollPane(medicineTable); 
+        scrollPane.setBorder(BorderFactory.createEmptyBorder()); 
         scrollPane.getViewport().setBackground(Color.WHITE);
-        
+
         tablePanel.add(scrollPane, BorderLayout.CENTER);
-        
-        return tablePanel;
+
+        return tablePanel; 
     }
     
     private void setupCellRenderers() {
@@ -658,6 +781,13 @@ public class leftButtonPanel {
             medicineTable.getColumnModel().getColumn(1).setCellRenderer(new MedicineCellRenderer());
             medicineTable.getColumnModel().getColumn(2).setCellRenderer(new ManufacturerCellRenderer());
             medicineTable.getColumnModel().getColumn(3).setCellRenderer(new QuantityCellRenderer());
+        } else if (isMedicineUpdateMode) {
+            medicineTable.getColumnModel().getColumn(0).setCellRenderer(new EditButtonCellRenderer());
+            medicineTable.getColumnModel().getColumn(0).setCellEditor(new EditButtonCellEditor());
+            medicineTable.getColumnModel().getColumn(1).setCellRenderer(new MedicineCellRenderer());
+            medicineTable.getColumnModel().getColumn(2).setCellRenderer(new ManufacturerCellRenderer());
+            medicineTable.getColumnModel().getColumn(3).setCellRenderer(new QuantityCellRenderer());
+
         } else {
             medicineTable.getColumnModel().getColumn(0).setCellRenderer(new MedicineCellRenderer());
             medicineTable.getColumnModel().getColumn(1).setCellRenderer(new ManufacturerCellRenderer());
@@ -672,6 +802,63 @@ public class leftButtonPanel {
         }
     }
     
+    class EditButtonCellRenderer extends JButton implements TableCellRenderer {
+        public EditButtonCellRenderer() {
+            setText("Edit");
+            setOpaque(true);
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                boolean isSelected, boolean hasFocus, int row, int column) {
+            // This will ensure the button looks consistent even if the table selection colors change
+            if (isSelected) {
+                setForeground(table.getSelectionForeground());
+                setBackground(table.getSelectionBackground());
+            } else {
+                setForeground(table.getForeground());
+                setBackground(UIManager.getColor("Button.background"));
+            }
+            return this;
+        }
+    }
+
+
+    // IMPORTANT 4 - CORRECTED VERSION
+    class EditButtonCellEditor extends AbstractCellEditor implements TableCellEditor, ActionListener {
+        private final JButton button;
+        private String medicineName;
+
+        public EditButtonCellEditor() {
+            button = new JButton("Edit");
+            button.setOpaque(true);
+            button.addActionListener(this);
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            // When the button is clicked, execute the action and then stop editing
+            editMedicineAction(medicineName);
+            fireEditingStopped();
+        }
+
+        @Override
+        public Component getTableCellEditorComponent(JTable table, Object value,
+                boolean isSelected, int row, int column) {
+            // When editing starts, get the medicine name for the current row
+            // The row index here is the view index, we need to convert it to the model index
+            int modelRow = table.convertRowIndexToModel(row);
+            this.medicineName = getMedicineNameFromRow(modelRow);
+            return button;
+        }
+
+        @Override
+        public Object getCellEditorValue() {
+            // The value of the cell after editing. For a button, this can be its text.
+            return button.getText();
+        }
+    }
+    
     
     // IMPORTANT 2
     // To do: Connect to DB
@@ -679,14 +866,17 @@ public class leftButtonPanel {
         // Clear existing data
         tableModel.setRowCount(0);
         
+        // Refresh data from database first
+        Inventory.refreshFromDatabase();
+        
         // Use filtered medicines instead of sorted
         List<String> filteredMedicines = getFilteredMedicines(currentSortType);
         
         // Add data from filtered list
         for (String medicine : filteredMedicines) {
             String manufacturer = getManufacturer(medicine);
-            String quantity = isUpdateMode && currentQuantities.containsKey(medicine) ? 
-                             String.valueOf(currentQuantities.get(medicine)) : getQuantity(medicine);
+            String quantity = isUpdateMode && currentQuantities.containsKey(medicine) ?
+                String.valueOf(currentQuantities.get(medicine)) : getQuantity(medicine);
             
             Object[] rowData;
             if (isRemoveMode) {
@@ -696,6 +886,13 @@ public class leftButtonPanel {
                     manufacturer,
                     quantity
                 };
+            } else if (isMedicineUpdateMode) {
+                rowData = new Object[]{
+                		"Edit", // Button text
+                        formatMedicineName(medicine),
+                        manufacturer,
+                        quantity
+                    };
             } else {
                 rowData = new Object[]{
                     formatMedicineName(medicine),
@@ -706,27 +903,22 @@ public class leftButtonPanel {
             tableModel.addRow(rowData);
         }
     }
-    
+
     private String formatMedicineName(String medicine) {
         return medicine + "\n" + getMedicineType(medicine);
     }
-    
+
     private String getManufacturer(String medicine) {
-        // Implement this method based on your Inventory class
-        return "Generic"; // Replace with actual implementation
+        return Inventory.getManufacturer(medicine);
     }
-    
+
     private String getQuantity(String medicine) {
-        // Implement this method based on your Inventory class
         int stock = Inventory.getStock(medicine);
-        String str = String.valueOf(stock);
-        return str; // Replace with actual implementation
+        return String.valueOf(stock);
     }
-    
+
     private String getMedicineType(String medicine) {
-        // Implement this method based on your Inventory class
-    	String str = "Pain Relief (500mg)";
-        return str; // Replace with actual implementation
+        return Inventory.getMedicineType(medicine);
     }
     
     private JPanel createPaginationPanel() {
@@ -786,7 +978,7 @@ public class leftButtonPanel {
     public void addButtonAction() {
         // Create input dialog for new medicine
     	inventory = new Inventory();
-    	for (;;) {
+    	
     		JPanel panel = new JPanel(new GridLayout(5, 2, 5, 5));
             
             JTextField nameField = new JTextField();
@@ -806,22 +998,16 @@ public class leftButtonPanel {
             panel.add(new JLabel("Stock/Quantity:"));
             panel.add(stockField);
             
-            int result = JOptionPane.showConfirmDialog(
-                mainPanel,
-                panel,
-                "Add New Medicine",
-                JOptionPane.OK_CANCEL_OPTION,
-                JOptionPane.PLAIN_MESSAGE
-            );
-            
-            System.out.println(result);
-            
+            for (;;) {
+            	
+            int result = JOptionPane.showConfirmDialog( mainPanel, panel, "Add New Medicine",JOptionPane.OK_CANCEL_OPTION,JOptionPane.PLAIN_MESSAGE);
+
             if (result == -1 || result == 2) {
             	break;
             }
             
             // IMPORTANT
-            // Adfd the database here
+            // Add the database here
             
             if (result == JOptionPane.OK_OPTION) {
                 // Add the new medicine to inventory
@@ -864,46 +1050,135 @@ public class leftButtonPanel {
     
     public void removeButtonAction() {
         isRemoveMode = !isRemoveMode;
+        isMedicineUpdateMode = false;
         
         if (isRemoveMode) {
-            removeButton.setText("Cancel Remove");
+            removeButton.setText("Exit Remove");
+            editMedicineButton.setText("Edit");
         } else {
             removeButton.setText("Remove");
         }
-        
         refreshTable();
+        updateFooterButtonStates();
     }
 
     public void returnButtonAction() {
         mainApp.restoreMainButtons();
     }
     
+    private void editMedicineAction() {
+    	isMedicineUpdateMode = !isMedicineUpdateMode;
+    	isRemoveMode = false;
+    	
+        if (isMedicineUpdateMode) {
+        	editMedicineButton.setText("Exit Edit");
+        	removeButton.setText("Remove");
+        } else {
+        	editMedicineButton.setText("Edit");
+        }
+        
+        refreshTable();
+        updateFooterButtonStates();
+    }
+    
+ // Replace the old editMedicineAction(String medicineName) method with this one in leftButtonPanel.java
+    private void editMedicineAction(String medicineName) {
+        // Use the new, efficient method to get all details in one go
+        Map<String, Object> details = Inventory.getMedicineDetails(medicineName);
+
+        if (details.isEmpty()) {
+            JOptionPane.showMessageDialog(mainPanel, "Could not find details for " + medicineName, "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Correctly get the current values from the details map
+        String currentClass = (String) details.get("pharmaClass");
+        String currentDosage = String.valueOf(details.get("dosage"));
+        String currentBrand = (String) details.get("brand");
+        String currentStock = String.valueOf(details.get("stock"));
+
+        // --- The rest of the method builds the dialog panel ---
+        JPanel panel = new JPanel(new GridLayout(5, 2, 5, 5));
+
+        JTextField nameField = new JTextField(medicineName);
+        JTextField classField = new JTextField(currentClass);
+        JTextField dosageField = new JTextField(currentDosage);
+        JTextField brandField = new JTextField(currentBrand);
+        JTextField stockField = new JTextField(currentStock);
+
+        // Make name field read-only as it's the primary identifier
+
+        panel.add(new JLabel("Medicine Name:"));
+        panel.add(nameField);
+        panel.add(new JLabel("Pharmacologic Class:"));
+        panel.add(classField);
+        panel.add(new JLabel("Dosage (Mg):"));
+        panel.add(dosageField);
+        panel.add(new JLabel("Brand:"));
+        panel.add(brandField);
+        panel.add(new JLabel("Stock/Quantity:"));
+        panel.add(stockField);
+
+        int result = JOptionPane.showConfirmDialog(mainPanel, panel, "Edit Medicine: " + medicineName,
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+        if (result == JOptionPane.OK_OPTION) {
+            try {
+                // Get the new values from the text fields
+                String newClass = classField.getText().trim();
+                int newDosage = Integer.parseInt(dosageField.getText().trim());
+                String newBrand = brandField.getText().trim();
+                int newStock = Integer.parseInt(stockField.getText().trim());
+
+                // Call the corrected update method in Inventory
+                boolean success = Inventory.updateMedicine(medicineName, newClass, newDosage, newBrand, newStock);
+
+                if (success) {
+                    Inventory.refreshFromDatabase(); // Refresh local cache
+                    refreshTable(); // Refresh the UI table
+                    JOptionPane.showMessageDialog(mainPanel, "Medicine updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(mainPanel, "Failed to update medicine in the database!", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(mainPanel, "Dosage and Stock must be valid numbers.", "Input Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
     
     
-    // Custom renderers
+    
+ // Replace this entire class in your code
     class HeaderRenderer extends DefaultTableCellRenderer {
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value,
                 boolean isSelected, boolean hasFocus, int row, int column) {
             
-            JLabel label = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-            label.setBackground(new Color(249, 250, 251));
-            label.setForeground(new Color(107, 114, 128));
-            label.setFont(new Font("SansSerif", Font.BOLD, 11));
-            label.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
-            
-            // Adjust alignment for different columns
-            if (isRemoveMode) {
-                if (column == 0) {
-                    label.setHorizontalAlignment(SwingConstants.CENTER); // Checkbox column
-                } else {
-                    label.setHorizontalAlignment(column == 3 ? SwingConstants.RIGHT : SwingConstants.LEFT);
-                }
-            } else {
-                label.setHorizontalAlignment(column == 2 ? SwingConstants.RIGHT : SwingConstants.LEFT);
+            JLabel label = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column); // 
+            label.setBackground(new Color(249, 250, 251)); // 
+            label.setForeground(new Color(107, 114, 128)); // 
+            label.setFont(new Font("SansSerif", Font.BOLD, 11)); // 
+            label.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20)); // 
+
+            // --- Start of Fix ---
+
+            // 1. Default alignment to LEFT for all columns.
+            label.setHorizontalAlignment(SwingConstants.LEFT); // 
+
+            // 2. Specifically center the checkbox column header when in Remove Mode.
+            if (isRemoveMode && column == 0) { // 
+                label.setHorizontalAlignment(SwingConstants.CENTER); // 
             }
+
+            // 3. Dynamically right-align the LAST column (which is always QUANTITY).
+            //    This works correctly for all modes (View, Edit, and Remove).
+            if (column == table.getColumnCount() - 1) {
+                label.setHorizontalAlignment(SwingConstants.RIGHT);
+            }
+
+            // --- End of Fix ---
             
-            return label;
+            return label; // 
         }
     }
     
@@ -970,6 +1245,7 @@ public class leftButtonPanel {
         }
     }
     
+    // IMPORTANT
     class UpdateQuantityCellRenderer implements TableCellRenderer {
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value,
@@ -1112,7 +1388,6 @@ public class leftButtonPanel {
         
         private void updateQuantityImmediately() {
             updateQuantity(medicineName, currentValue);
-            // Don't call fireEditingStopped() here to keep editing active
         }
         
         @Override
@@ -1126,6 +1401,7 @@ public class leftButtonPanel {
             isEditing = true;
             
             // FIXED: Ensure components are focusable and enabled
+            // IMPORTANT 5
             minusBtn.setEnabled(true);
             plusBtn.setEnabled(true);
             stockField.setEditable(true);
@@ -1158,14 +1434,23 @@ public class leftButtonPanel {
     
     // Helper method to get medicine name from table row
     private String getMedicineNameFromRow(int row) {
-        int medicineColumn = isRemoveMode ? 1 : 0;
+        int medicineColumn;
+
+        // If in remove mode OR medicine edit mode, the medicine name is in column 1.
+        if (isRemoveMode || isMedicineUpdateMode) {
+            medicineColumn = 1;
+        } else {
+            // Otherwise, it's in column 0.
+            medicineColumn = 0;
+        }
+
         String fullText = (String) tableModel.getValueAt(row, medicineColumn);
-        // Extract medicine name (before the newline)
+        // Extract just the medicine name (the part before the newline)
         return fullText.split("\n")[0];
     }
     
     // Helper method to update quantity and track changes
- // Replace the existing updateQuantity() method with this:
+    // Replace the existing updateQuantity() method with this:
     private void updateQuantity(String medicineName, int newQuantity) {
         currentQuantities.put(medicineName, newQuantity);
         
@@ -1255,7 +1540,7 @@ public class leftButtonPanel {
     // Add table mouse listener for checkbox handling
     // Add table mouse listener for checkbox handling
     // Replace the existing setupTableMouseListener() method with this:
- // 2. FIXED: Replace your setupTableMouseListener method with this:
+    // 2. FIXED: Replace your setupTableMouseListener method with this:
     private void setupTableMouseListener() {
         medicineTable.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
@@ -1387,9 +1672,5 @@ public class leftButtonPanel {
                 available++;
             }
         }
-        
-        // Update status panel with new counts
-        // This would require modifying createStatusPanel to accept parameters
-        // For now, the counts are hardcoded in createStatusPanel
     }
 }

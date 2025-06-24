@@ -66,8 +66,6 @@ public class Main {
 
         // Add titled border with header
         setBorderTitle();
-        
-
 
         // Add the button panel to the center of rightPanel
         JPanel buttonPanel = createButtons();
@@ -80,7 +78,6 @@ public class Main {
         splitPane.setContinuousLayout(true);
 
         frame.getContentPane().add(splitPane);
-        
     }
 
     // 3. Create a panel with two buttons in GridLayout
@@ -116,7 +113,7 @@ public class Main {
     
     public void leftButtonAction() {
     	// insert the code to call leftButtonPanel here
-        leftButtonPanel leftPanelObj = new leftButtonPanel(this);
+        leftButtonFunctions leftPanelObj = new leftButtonFunctions(this);
         rightPanel.removeAll();
         rightPanel.add(leftPanelObj.getMainPanel(), BorderLayout.CENTER);
         rightPanel.revalidate();
@@ -138,6 +135,4 @@ public class Main {
         titledBorder.setTitleJustification(TitledBorder.LEFT); // or LEFT/RIGHT
         rightPanel.setBorder(titledBorder);
     }
-    
-    
 }
