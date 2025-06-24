@@ -14,7 +14,8 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-
+import java.sql.ResultSet;
+import java.sql.Statement;
 
 public class Inventory {
 	
@@ -48,20 +49,44 @@ public class Inventory {
 
 	public static void main(String[] args) {
 		Connection conn = Inventory.connect();
+		// Load data from database when program starts
+		loadMedicinesFromDatabase();
 		Inventory.disconnect();
 	}
-
-	
-	/*
-    private static final List<String> MEDICINE_LIST = Arrays.asList(
-        "Paracetamol", "Biogesic", "Coldzep", "Robitussin", "Cetirizine", "Sting"
-    );
-    */
     
     private static final Map<String, Integer> STOCK_LIST = new HashMap<>();
     
-    //*
-    static {
+    // Load all medicines from database into STOCK_LIST
+    public static void loadMedicinesFromDatabase() {
+        String sql = "SELECT medName, stock FROM medicinelist";
+        
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            
+            // Clear existing data first
+            STOCK_LIST.clear();
+            
+            while (rs.next()) {
+                String medName = rs.getString("medName");
+                int stock = rs.getInt("stock");
+                STOCK_LIST.put(medName, stock);
+            }
+            
+            System.out.println("Loaded " + STOCK_LIST.size() + " medicines from database");
+            
+        } catch (SQLException e) {
+            System.err.println("Error loading medicines from database: " + e.getMessage());
+            e.printStackTrace();
+            
+            // If database loading fails, initialize with default values
+            initializeDefaultStock();
+        }
+    }
+    
+    // Fallback method to initialize with default stock if database fails
+    private static void initializeDefaultStock() {
+        STOCK_LIST.clear();
         STOCK_LIST.put("Paracetamol", 324);
         STOCK_LIST.put("Biogesic", 7);
         STOCK_LIST.put("Coldzep", 249);
@@ -71,17 +96,14 @@ public class Inventory {
         STOCK_LIST.put("Ibuprofen", 84);
         STOCK_LIST.put("Loratadine", 72);
         STOCK_LIST.put("Omeprazole", 0);
-        STOCK_LIST.put("Amoxicillin", 93);
         STOCK_LIST.put("Sting", 9993);
+        System.out.println("Initialized with default stock values");
     }
-    /*
-        public static List<String> getAllMedicines() {
-        List<String> sorted = new ArrayList<>(STOCK_LIST.keySet());
-        Collections.sort(sorted); // A-Z sorting
-        return sorted;
-    }
-    */
     
+    // Method to refresh stock list from database (call this when you need to update the display)
+    public static void refreshFromDatabase() {
+        loadMedicinesFromDatabase();
+    }
     
     // medName, pharmaClass, dosageValue, brand, stockValue
     public boolean insertMedicineToDatabase(String medName, String pharmaClass, int dosage, String brand, int stock) {
@@ -99,13 +121,39 @@ public class Inventory {
             int rowsAffected = pstmt.executeUpdate();
             
             if (rowsAffected > 0) {
-                // Also update STOCK_LIST
+                // Update STOCK_LIST immediately
                 STOCK_LIST.put(medName, stock);
+                System.out.println("Medicine added successfully: " + medName);
                 return true;
             }
             
         } catch (SQLException e) {
             System.err.println("Error inserting medicine: " + e.getMessage());
+        }
+        
+        return false;
+    }
+    
+    // Method to update stock in both database and memory
+    public static boolean updateMedicineStock(String medName, int newStock) {
+        String sql = "UPDATE medicinelist SET stock = ? WHERE medName = ?";
+        
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setInt(1, newStock);
+            pstmt.setString(2, medName);
+            
+            int rowsAffected = pstmt.executeUpdate();
+            
+            if (rowsAffected > 0) {
+                // Update STOCK_LIST
+                STOCK_LIST.put(medName, newStock);
+                return true;
+            }
+            
+        } catch (SQLException e) {
+            System.err.println("Error updating medicine stock: " + e.getMessage());
         }
         
         return false;
@@ -168,28 +216,14 @@ public class Inventory {
         
         return sorted;
     }
-    
-    /*
-    public static void addMedicine(String name, int stock) {
-        if (!MEDICINE_LIST.contains(name)) {
-            MEDICINE_LIST.add(name);
-        }
-        STOCK_LIST.put(name, stock);
-    }
-    
-    public static boolean isAvailable(String name) {
-        return MEDICINE_LIST.contains(name);
-    }
-	*/
 
     public static int getStock(String medicineName) {
         return STOCK_LIST.getOrDefault(medicineName, 0);
     }
 
-   
-
     public static void setStock(String name, int amount) {
         STOCK_LIST.put(name, amount);
+        // Optionally update database immediately
+        updateMedicineStock(name, amount);
     }
 }
-

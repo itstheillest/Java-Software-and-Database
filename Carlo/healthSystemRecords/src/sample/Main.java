@@ -1,3 +1,5 @@
+// Update 2: Add function properly implemented
+
 package sample;
 
 import sample.leftButtonPanel;
@@ -86,11 +88,11 @@ public class Main {
         JPanel buttonGridPanel = new JPanel(new GridLayout(1, 2, 10, 0)); // 10px horizontal gap
         buttonGridPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10)); // Padding
 
-        JButton leftButton = new JButton("Left Button");
+        JButton leftButton = new JButton("Medincine Inventory System");
         leftButton.setBorder(new RoundedBorder(20));
         leftButton.setContentAreaFilled(true);
 
-        JButton rightButton = new JButton("Right Button");
+        JButton rightButton = new JButton("Appointment Form");
         rightButton.setBorder(new RoundedBorder(20));
         rightButton.setContentAreaFilled(true);
 

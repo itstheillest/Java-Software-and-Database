@@ -31,7 +31,7 @@ import java.util.Collections;
 
 public class leftButtonPanel {
     private JPanel mainPanel;
-    private JButton returnButton, updateButton, addButton, removeButton, backButton, searchButton;
+    private JButton returnButton, editModeButton, addButton, removeButton, backButton, searchButton;
     private JComboBox medicineSorting;
     private String currentSortType = "Name (A-Z)"; // Track current sorting
     
@@ -41,7 +41,7 @@ public class leftButtonPanel {
     private JPanel searchPanel;
     
     private JPanel footerPanel;
-    private JButton cancelButton;
+    private JButton viewButton;
     private JButton confirmButton;
     private JButton undoButton;
     private JButton saveButton;
@@ -82,6 +82,10 @@ public class leftButtonPanel {
         mainPanel.add(headerPanel, BorderLayout.NORTH);
         mainPanel.add(new JScrollPane(scrollableBodyPanel), BorderLayout.CENTER);
         mainPanel.add(footerPanel, BorderLayout.SOUTH);
+        
+        Inventory.loadMedicinesFromDatabase();       
+        
+        enterUpdateMode();
     }
 
     private void setUpHeader() {
@@ -131,13 +135,9 @@ public class leftButtonPanel {
         searchPanel.add(searchField);
         searchPanel.add(medicineSorting);
         headerPanel.add(searchPanel, BorderLayout.CENTER);
-        
-        
 
         // Update button (Right) - will be replaced with panel when in update mode
-        updateButton = new JButton("Update");
-        updateButton.addActionListener(e -> enterUpdateMode());
-        headerPanel.add(updateButton, BorderLayout.EAST);
+
         
         // Create update buttons panel (initially hidden)
         createUpdateButtonsPanel();
@@ -149,15 +149,15 @@ public class leftButtonPanel {
         
         addButton = new JButton("Add");
         removeButton = new JButton("Remove");
-        backButton = new JButton("Back");
+        // backButton = new JButton("Back");
         
         addButton.addActionListener(e -> addButtonAction());
         removeButton.addActionListener(e -> removeButtonAction());
-        backButton.addActionListener(e -> exitUpdateMode());
+        // backButton.addActionListener(e -> exitUpdateMode());
         
         updateButtonsPanel.add(addButton);
         updateButtonsPanel.add(removeButton);
-        updateButtonsPanel.add(backButton);
+        // updateButtonsPanel.add(backButton);
     }
     
     private void refreshTableWithSorting() {
@@ -288,7 +288,7 @@ public class leftButtonPanel {
         isUpdateMode = true;
         
         // Replace update button with update buttons panel
-        headerPanel.remove(updateButton);
+        headerPanel.remove(editModeButton);
         headerPanel.add(updateButtonsPanel, BorderLayout.EAST);
         
         // Show footer buttons
@@ -310,7 +310,7 @@ public class leftButtonPanel {
         
         // Replace update buttons panel with update button
         headerPanel.remove(updateButtonsPanel);
-        headerPanel.add(updateButton, BorderLayout.EAST);
+        footerPanel.add(editModeButton, BorderLayout.EAST);
         
         // Hide footer buttons
         hideFooterButtons();
@@ -373,26 +373,61 @@ public class leftButtonPanel {
     }
     
     private void setUpFooter() {
+    	
+    	editModeButton = new JButton("Edit Mode");
+    	editModeButton.addActionListener(e -> enterUpdateMode());
+        
         footerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         footerPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
         footerPanel.setBackground(new Color(245, 245, 245)); // light gray for distinction
 
         undoButton = new JButton("Undo");
-        cancelButton = new JButton("Cancel");
+        viewButton = new JButton("View Mode");
         saveButton = new JButton("Save");
 
         undoButton.addActionListener(e -> undoChanges());
-        cancelButton.addActionListener(e -> exitUpdateMode());
+        viewButton.addActionListener(e -> exitUpdateMode());
         saveButton.addActionListener(e -> saveChanges());
 
         footerPanel.add(undoButton);
-        footerPanel.add(cancelButton);
+        footerPanel.add(viewButton);
         footerPanel.add(saveButton);
+        footerPanel.add(editModeButton, BorderLayout.EAST);
 
         // Keep panel visible, but buttons hidden by default
         undoButton.setVisible(false);
-        cancelButton.setVisible(false);
+        viewButton.setVisible(false);
         saveButton.setVisible(false);
+        editModeButton.setVisible(false);
+    }
+    
+    private void showFooterButtons() {
+        undoButton.setVisible(true);
+        viewButton.setVisible(true);
+        saveButton.setVisible(true);
+        editModeButton.setVisible(false);
+        updateFooterButtonStates();
+    }
+
+    private void hideFooterButtons() {
+        undoButton.setVisible(false);
+        viewButton.setVisible(false);
+        saveButton.setVisible(false);
+        editModeButton.setVisible(true);
+    }
+    
+    // Replace the existing updateFooterButtonStates() method with this:
+    // Replace the existing updateFooterButtonStates() method with this:
+    private void updateFooterButtonStates() {
+        // Always keep buttons enabled
+        undoButton.setEnabled(true);
+        saveButton.setEnabled(true);
+        
+        // Always keep buttons highlighted
+        undoButton.setBackground(new Color(59, 130, 246)); // Blue
+        undoButton.setForeground(Color.WHITE);
+        saveButton.setBackground(new Color(34, 197, 94)); // Green
+        saveButton.setForeground(Color.WHITE);
     }
     
     private void undoChanges() {
@@ -405,6 +440,8 @@ public class leftButtonPanel {
         updateFooterButtonStates();
         refreshTable();
     }
+    
+    
     
     private void saveChanges() {
         if (!hasChanges) {
@@ -431,19 +468,7 @@ public class leftButtonPanel {
         }
     }
     
- // Replace the existing updateFooterButtonStates() method with this:
- // Replace the existing updateFooterButtonStates() method with this:
-    private void updateFooterButtonStates() {
-        // Always keep buttons enabled
-        undoButton.setEnabled(true);
-        saveButton.setEnabled(true);
-        
-        // Always keep buttons highlighted
-        undoButton.setBackground(new Color(59, 130, 246)); // Blue
-        undoButton.setForeground(Color.WHITE);
-        saveButton.setBackground(new Color(34, 197, 94)); // Green
-        saveButton.setForeground(Color.WHITE);
-    }
+    
     
     private void setUpBody() {
         scrollableBodyPanel = new JPanel(new BorderLayout());
@@ -774,7 +799,7 @@ public class leftButtonPanel {
             panel.add(nameField);
             panel.add(new JLabel("Pharmacologic Class:"));
             panel.add(classField);
-            panel.add(new JLabel("Dosage:"));
+            panel.add(new JLabel("Dosage (Mg):"));
             panel.add(dosageField);
             panel.add(new JLabel("Brand:"));
             panel.add(brandField);
@@ -815,6 +840,7 @@ public class leftButtonPanel {
                         
                         if (success) {
                             // Your existing success logic
+                        	Inventory.refreshFromDatabase();
                         	refreshTable(); // or whatever you do to update the GUI
                         	JOptionPane.showMessageDialog(mainPanel, "Medicine added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
                         } else {
@@ -852,18 +878,7 @@ public class leftButtonPanel {
         mainApp.restoreMainButtons();
     }
     
-    private void showFooterButtons() {
-        undoButton.setVisible(true);
-        cancelButton.setVisible(true);
-        saveButton.setVisible(true);
-        updateFooterButtonStates();
-    }
-
-    private void hideFooterButtons() {
-        undoButton.setVisible(false);
-        cancelButton.setVisible(false);
-        saveButton.setVisible(false);
-    }
+    
     
     // Custom renderers
     class HeaderRenderer extends DefaultTableCellRenderer {
